@@ -65,6 +65,7 @@ function AppShell() {
   const [sessionId] = useState(() => `batch_${Date.now()}`);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0); // 0 to 100
+  const [uploadStats, setUploadStats] = useState<{ success: number; total: number } | null>(null);
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
 
   useEffect(() => {
@@ -90,6 +91,8 @@ function AppShell() {
     setProgress(0);
     const totalFiles = files.length;
     let completed = 0;
+    let successCount = 0;
+    setUploadStats({ success: 0, total: totalFiles });
 
     const newPhotos: { id: string; url: string }[] = [];
 
@@ -154,6 +157,8 @@ function AppShell() {
           id: recordData.record.id,
           url: recordData.publicUrl
         });
+        
+        successCount++;
 
       } catch (err) {
         console.error('Failed to upload file:', file.name, err);
@@ -161,6 +166,7 @@ function AppShell() {
 
       completed++;
       setProgress(Math.round((completed / totalFiles) * 100));
+      setUploadStats({ success: successCount, total: totalFiles });
     }
 
     setPhotos(prev => [...newPhotos, ...prev]);
@@ -174,9 +180,16 @@ function AppShell() {
     <main className="flex min-h-[100dvh] flex-col bg-black text-white selection:bg-white selection:text-black pb-[96px]">
       {/* Header / Tabs */}
       <header className="sticky top-0 z-50 flex flex-col justify-end bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
-        <h1 className="text-xl font-medium tracking-wide text-white/90">
-          Resale Batch
-        </h1>
+        <div className="flex items-end justify-between">
+          <h1 className="text-xl font-medium tracking-wide text-white/90">
+            Resale Batch
+          </h1>
+          {uploading && uploadStats && (
+            <p className="text-xs font-mono text-white/60 mb-1">
+              {uploadStats.success} / {uploadStats.total} uploaded
+            </p>
+          )}
+        </div>
         <div className="mt-6 flex space-x-6">
           <TabButton 
             active={activeTab === 'photos'} 
