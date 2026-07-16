@@ -67,6 +67,21 @@ function AppShell() {
   const [progress, setProgress] = useState(0); // 0 to 100
   const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
 
+  useEffect(() => {
+    async function loadPhotos() {
+      try {
+        const res = await fetch('/api/photo/list');
+        const data = await res.json();
+        if (res.ok && data.photos) {
+          setPhotos(data.photos);
+        }
+      } catch (err) {
+        console.error('Failed to load photos:', err);
+      }
+    }
+    loadPhotos();
+  }, []);
+
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -148,7 +163,7 @@ function AppShell() {
       setProgress(Math.round((completed / totalFiles) * 100));
     }
 
-    setPhotos(prev => [...prev, ...newPhotos]);
+    setPhotos(prev => [...newPhotos, ...prev]);
     setUploading(false);
     
     // Clear input
