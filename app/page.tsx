@@ -244,22 +244,10 @@ function AppShell() {
           <h1 className="text-xl font-medium tracking-wide text-white/90">
             Resale Batch
           </h1>
-          {uploading && uploadStats ? (
+          {uploading && uploadStats && (
             <p className="text-xs font-mono text-white/60 mb-1">
               {uploadStats.success} / {uploadStats.total} uploaded
             </p>
-          ) : (
-            activeTab === 'photos' && (
-              <button 
-                onClick={() => {
-                  setIsSelectionMode(!isSelectionMode);
-                  setSelectedPhotoIds(new Set());
-                }} 
-                className="text-xs font-semibold uppercase tracking-widest text-white/80 mb-1 active:opacity-50"
-              >
-                {isSelectionMode ? 'Cancel' : 'Group'}
-              </button>
-            )
           )}
         </div>
         <div className="mt-6 flex space-x-6">
@@ -392,9 +380,22 @@ function AppShell() {
         >
           +
         </button>
+        
+        {activeTab === 'photos' && !uploading && (
+          <button 
+            onClick={() => {
+              setIsSelectionMode(!isSelectionMode);
+              setSelectedPhotoIds(new Set());
+            }} 
+            className="flex h-14 px-6 items-center justify-center rounded-full bg-white/5 border border-white/10 text-sm font-medium uppercase tracking-widest text-white/80 transition active:scale-95"
+          >
+            {isSelectionMode ? 'Cancel' : 'Group'}
+          </button>
+        )}
+
         <button 
           disabled 
-          className="flex h-14 w-32 items-center justify-center rounded-full bg-white/5 border border-white/10 text-sm font-medium uppercase tracking-widest text-white/30 transition disabled:opacity-50"
+          className="flex h-14 w-24 sm:w-32 items-center justify-center rounded-full bg-white/5 border border-white/10 text-sm font-medium uppercase tracking-widest text-white/30 transition disabled:opacity-50"
         >
           Send
         </button>
