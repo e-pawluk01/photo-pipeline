@@ -8,6 +8,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
 
+    console.log('API /photo/list called with sessionId:', sessionId);
+
     if (!sessionId) {
       return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
     }
@@ -20,8 +22,11 @@ export async function GET(request: Request) {
       .order('upload_timestamp', { ascending: false });
 
     if (photosError) {
+      console.error('API /photo/list error fetching photos:', photosError);
       return NextResponse.json({ error: photosError.message }, { status: 500 });
     }
+
+    console.log(`API /photo/list found ${photosData.length} photos for session ${sessionId}`);
 
     // Fetch groups for session
     const { data: groupsData, error: groupsError } = await supabaseServer

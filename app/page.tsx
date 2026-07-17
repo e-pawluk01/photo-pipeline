@@ -92,9 +92,11 @@ function AppShell() {
 
   useEffect(() => {
     let sid = localStorage.getItem('photo-pipeline-session');
+    console.log('Client: localStorage returned sid:', sid);
     if (!sid) {
       sid = `batch_${Date.now()}`;
       localStorage.setItem('photo-pipeline-session', sid);
+      console.log('Client: Generated new sid:', sid);
     }
     setSessionId(sid);
   }, []);
