@@ -71,7 +71,7 @@ export default function Page() {
   if (checkingGate) return <main className="min-h-[100dvh] bg-black" />;
 
   if (!unlocked) {
-    return <PasscodeGate onUnlock={(code) => { setPasscode(code); setUnlocked(true); }} verify={verifyPasscode} />;
+    return <PasscodeGate onUnlock={(code: string) => { setPasscode(code); setUnlocked(true); }} verify={verifyPasscode} />;
   }
 
   return <AppShell />;
@@ -285,7 +285,7 @@ function AppShell() {
         <GroupDetailView 
           group={activeGroup}
           photos={photos}
-          onUpdate={(updatedGroup) => {
+          onUpdate={(updatedGroup: Group) => {
             setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
           }}
           onBack={() => setActiveGroupId(null)}
@@ -294,7 +294,7 @@ function AppShell() {
             setActiveGroupId(null);
             setIsSelectionMode(true);
           }}
-          onRemovePhoto={async (photoId) => {
+          onRemovePhoto={async (photoId: string) => {
              // quick optimistic update
              setPhotos(prev => prev.map(p => p.id === photoId ? { ...p, group_id: null } : p));
              fetch('/api/photo/assign', {
@@ -303,7 +303,7 @@ function AppShell() {
                body: JSON.stringify({ photoIds: [photoId], groupId: null })
              });
           }}
-          onSetCover={async (photoId) => {
+          onSetCover={async (photoId: string) => {
              // quick optimistic update
              setGroups(prev => prev.map(g => g.id === activeGroupId ? { ...g, cover_photo_id: photoId } : g));
              fetch('/api/group/edit', {
@@ -525,13 +525,13 @@ function AppShell() {
           selectedIds={selectedPhotoIds}
           sessionId={sessionId}
           onClose={() => setShowGroupModal(false)}
-          onDeselect={(id) => {
+          onDeselect={(id: string) => {
             const next = new Set(selectedPhotoIds);
             next.delete(id);
             setSelectedPhotoIds(next);
             if (next.size === 0) setShowGroupModal(false);
           }}
-          onSuccess={(newGroup) => {
+          onSuccess={(newGroup: Group) => {
             setGroups(prev => [newGroup, ...prev]);
             const ids = Array.from(selectedPhotoIds);
             setPhotos(prev => prev.map(p => ids.includes(p.id) ? { ...p, group_id: newGroup.id } : p));
