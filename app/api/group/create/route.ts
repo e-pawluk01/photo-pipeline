@@ -3,18 +3,21 @@ import { supabaseServer } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { item_type, size, notes, photoIds, cover_photo_id, session_id } = await request.json();
+    const { title, category_path, brand, condition, size, notes, photoIds, cover_photo_id, session_id } = await request.json();
 
-    if (!item_type || !size || !photoIds || photoIds.length === 0 || !cover_photo_id || !session_id) {
+    if (!title || !category_path || !size || !condition || !photoIds || photoIds.length === 0 || !cover_photo_id || !session_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 1. Create the group
     const { data: groupData, error: groupError } = await supabaseServer
       .from('groups')
       .insert([
         {
-          item_type,
+          title,
+          category_path,
+          brand: brand || null,
+          condition,
+          item_type: 'UNUSED',
           size,
           notes: notes || null,
           cover_photo_id,
@@ -29,7 +32,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: groupError.message }, { status: 500 });
     }
 
-    // 2. Update the photos to set the group_id
     const { error: photoUpdateError } = await supabaseServer
       .from('photos')
       .update({ group_id: groupData.id })
