@@ -102,6 +102,7 @@ function AppShell() {
   
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [progressGroups, setProgressGroups] = useState<Group[]>([]);
 
   // Selection & Modal
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -125,21 +126,24 @@ function AppShell() {
     setSessionId(sid);
   }, []);
 
-  useEffect(() => {
+  const refetchMainData = async () => {
     if (!sessionId) return;
-    async function loadData() {
-      try {
-        const res = await fetch(`/api/photo/list?sessionId=${sessionId}`);
-        const data = await res.json();
-        if (res.ok) {
-          if (data.photos) setPhotos(data.photos);
-          if (data.groups) setGroups(data.groups);
-        }
-      } catch (err) {
-        console.error('Failed to load data:', err);
+    try {
+      const res = await fetch(`/api/photo/list?sessionId=${sessionId}`);
+      const data = await res.json();
+      if (res.ok) {
+        if (data.photos) setPhotos(data.photos);
+        if (data.groups) setGroups(data.groups);
       }
+    } catch (err) {
+      console.error('Failed to load data:', err);
     }
-    loadData();
+  };
+
+  useEffect(() => {
+    if (sessionId) {
+      refetchMainData();
+    }
   }, [sessionId]);
 
   useEffect(() => {
@@ -151,7 +155,7 @@ function AppShell() {
           const res = await fetch(`/api/photo/list?sessionId=${sessionId}&includeDone=true`);
           const data = await res.json();
           if (res.ok && active && data.groups) {
-            setGroups(data.groups);
+            setProgressGroups(data.groups);
           }
         } catch (err) {}
       }
@@ -159,7 +163,7 @@ function AppShell() {
       fetchProgress();
 
       const interval = setInterval(() => {
-        setGroups(prev => {
+        setProgressGroups(prev => {
           if (prev.some(g => g.status === 'pending' || g.status === 'filing')) {
             fetchProgress();
           }
@@ -276,19 +280,22 @@ function AppShell() {
     for (const g of groupsToProcess) {
       if (g.status === 'done') continue;
       // Optimistic update
+      setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
       setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
       try {
         const res = await fetch(`/api/group/${g.id}/process`, { method: 'POST' });
         const data = await res.json();
         if (res.ok) {
-          setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'done', drive_folder_link: data.folderLink } : x));
+          setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'done', drive_folder_link: data.folderLink } : x));
         } else {
-          setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: data.error } : x));
+          setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: data.error } : x));
         }
       } catch (err: any) {
-        setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: err.message } : x));
+        setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: err.message } : x));
       }
     }
+    // Refresh main view after processing all
+    refetchMainData();
   }
 
   async function handleCleanup() {
@@ -480,13 +487,13 @@ function AppShell() {
 
         {activeTab === 'progress' && (
           <div className="flex flex-col space-y-4 pb-12">
-            {groups.length === 0 ? (
+            {progressGroups.length === 0 ? (
               <div className="flex h-[60vh] flex-col items-center justify-center opacity-50">
                 <div className="text-sm font-light tracking-widest text-white/40 uppercase">No Groups Yet</div>
               </div>
             ) : (
               <div className="space-y-3">
-                {groups.map(g => (
+                {progressGroups.map(g => (
                   <div key={g.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-medium">{g.title}</h3>
@@ -498,7 +505,7 @@ function AppShell() {
                       )}
                     </div>
                     <div className="text-xs uppercase tracking-widest font-bold flex items-center gap-4">
-                      {g.status === 'pending' && <span className="text-white/40">Pending</span>}
+                      {g.status === 'pending' && <span className="text-white/40">DRAFT</span>}
                       {g.status === 'filing' && <span className="text-blue-400 animate-pulse">Filing...</span>}
                       {g.status === 'done' && <span className="text-green-400">✓ Done</span>}
                       {g.status === 'failed' && (
