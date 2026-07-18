@@ -4,23 +4,21 @@ import { useEffect, useState, useRef } from 'react';
 
 const PASSCODE_KEY = 'photo-pipeline-passcode';
 
-const TAXONOMY: Record<string, Record<string, string[]>> = {
-  "Woman": {
-    "Outerwear": ["Capes & ponchos", "Coats", "Gilets & body warmers", "Jackets"],
-    "Jumper & sweaters": ["Hoodies & sweatshirts", "Jumpers", "Cardigans", "Boleros", "Other Jumper & sweaters"],
-    "Suits & Blazers": ["Blazers", "Trousers suits", "Other suits & blazers"],
-    "Dresses": ["Mini-dresses", "Midi-dresses", "Long dresses", "Special-occasion dresses", "Summer dresses", "Winter dresses", "Strapless dresses", "Little black dresses", "Other dresses"],
-    "Skirts": ["Mini skirts", "Knee-length skirts", "Midi skirts", "Maxi skirts", "Asymmetrical skirts"],
-    "Tops & t-shirts": ["Shirts", "Blouses", "Camis", "T-shirts", "Vest tops", "Crop tops", "Short-sleeved tops", "Long-sleeved tops", "Off-the-shoulder tops", "Other Tops & t-shirts"],
-    "Jeans": ["Cropped jeans", "Flared jeans", "High waisted jeans", "Skinny jeans", "Straight jeans", "Other"],
-    "Trousers & leggings": ["Cropped trousers & chinos", "Wide-leg trousers", "Skinny trousers", "Straight-leg trousers", "Leggings", "Other trousers"],
-    "Shorts & cropped trousers": ["Low-waisted shorts", "High-waisted shorts", "Knee-length shorts", "Denim shorts", "Lace shorts", "Cargo shorts", "Cropped trousers", "Other shorts & cropped trousers"],
-    "Lingerie & nightwear": ["Bras", "Panties", "Sets", "Shapewear", "Nightwear", "Lingerie accessories"],
-    "Activewear": ["Outerwear", "Shorts", "Skirts", "Tops & t-shirts", "Tracksuits", "Hoodies & sweatshirts", "Other activewear"],
-    "Shoes": ["Boots", "Clogs & mules", "Boar shoes, loafers & moccasins", "Flip-flops & slides", "Heels", "Lace-up shoes", "Trainers"],
-    "Bags": ["Bum bags", "Clutches", "Handbags", "Hobo bags", "Satchels & messenger bags", "Tote bags", "Wallets & purses"],
-    "Accessories": ["Belts", "Hats & caps", "Jewelry", "Other accessories"]
-  }
+const TAXONOMY: Record<string, string[]> = {
+  "Outerwear": ["Capes & ponchos", "Coats", "Gilets & body warmers", "Jackets"],
+  "Jumper & sweaters": ["Hoodies & sweatshirts", "Jumpers", "Cardigans", "Boleros", "Other Jumper & sweaters"],
+  "Suits & Blazers": ["Blazers", "Trousers suits", "Other suits & blazers"],
+  "Dresses": ["Mini-dresses", "Midi-dresses", "Long dresses", "Special-occasion dresses", "Summer dresses", "Winter dresses", "Strapless dresses", "Little black dresses", "Other dresses"],
+  "Skirts": ["Mini skirts", "Knee-length skirts", "Midi skirts", "Maxi skirts", "Asymmetrical skirts"],
+  "Tops & t-shirts": ["Shirts", "Blouses", "Camis", "T-shirts", "Vest tops", "Crop tops", "Short-sleeved tops", "Long-sleeved tops", "Off-the-shoulder tops", "Other Tops & t-shirts"],
+  "Jeans": ["Cropped jeans", "Flared jeans", "High waisted jeans", "Skinny jeans", "Straight jeans", "Other"],
+  "Trousers & leggings": ["Cropped trousers & chinos", "Wide-leg trousers", "Skinny trousers", "Straight-leg trousers", "Leggings", "Other trousers"],
+  "Shorts & cropped trousers": ["Low-waisted shorts", "High-waisted shorts", "Knee-length shorts", "Denim shorts", "Lace shorts", "Cargo shorts", "Cropped trousers", "Other shorts & cropped trousers"],
+  "Lingerie & nightwear": ["Bras", "Panties", "Sets", "Shapewear", "Nightwear", "Lingerie accessories"],
+  "Activewear": ["Outerwear", "Shorts", "Skirts", "Tops & t-shirts", "Tracksuits", "Hoodies & sweatshirts", "Other activewear"],
+  "Shoes": ["Boots", "Clogs & mules", "Boar shoes, loafers & moccasins", "Flip-flops & slides", "Heels", "Lace-up shoes", "Trainers"],
+  "Bags": ["Bum bags", "Clutches", "Handbags", "Hobo bags", "Satchels & messenger bags", "Tote bags", "Wallets & purses"],
+  "Accessories": ["Belts", "Hats & caps", "Jewelry", "Other accessories"]
 };
 
 const CLOTHING_SIZES = ['XS (UK 4-6)', 'S (UK 8-10)', 'M (UK 12-14)', 'L (UK 16-18)', 'XL (UK 20-22)', 'One Size'];
@@ -502,16 +500,16 @@ function AppShell() {
 
       {/* Cleanup Confirmation Modal */}
       {showCleanupModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-6">
-          <div className="bg-white/10 border border-white/20 p-8 rounded-3xl max-w-sm w-full text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#111111]/70 backdrop-blur-sm p-6">
+          <div className="bg-[#1a1a1a] border border-white/10 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
              <h2 className="text-xl font-medium mb-4">Ready to Send?</h2>
              <p className="text-white/60 text-sm mb-8">
                {loosePhotos.length} photos aren't in a group and will be completely deleted from the database. Continue?
              </p>
              <div className="flex space-x-4">
-               <button onClick={() => setShowCleanupModal(false)} className="flex-1 bg-white/10 py-3 rounded-full text-sm font-medium">Cancel</button>
-               <button onClick={handleCleanup} disabled={isCleaningUp} className="flex-1 bg-red-500/80 text-white py-3 rounded-full text-sm font-medium disabled:opacity-50">
-                 {isCleaningUp ? 'Deleting...' : 'Confirm'}
+               <button onClick={() => setShowCleanupModal(false)} className="flex-1 bg-white/5 py-3 rounded-full text-sm font-medium border border-white/10 hover:bg-white/10 transition">Cancel</button>
+               <button onClick={handleCleanup} disabled={isCleaningUp} className="flex-1 bg-white text-black py-3 rounded-full text-sm font-bold tracking-wide hover:bg-white/90 disabled:opacity-50 transition">
+                 {isCleaningUp ? 'Processing...' : 'Confirm'}
                </button>
              </div>
           </div>
@@ -549,7 +547,6 @@ function AppShell() {
 // Group Modal Component (Create Mode)
 // ----------------------------------------------------------------------------------
 function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuccess }: any) {
-  const [dept, setDept] = useState('Woman');
   const [cat, setCat] = useState('Outerwear');
   const [subcat, setSubcat] = useState('Jackets');
   const [title, setTitle] = useState('');
@@ -559,16 +556,8 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Cascading logic
   useEffect(() => {
-    const cats = Object.keys(TAXONOMY[dept]);
-    if (!cats.includes(cat)) {
-      setCat(cats[0]);
-    }
-  }, [dept]);
-
-  useEffect(() => {
-    const subcats = TAXONOMY[dept][cat];
+    const subcats = TAXONOMY[cat];
     if (!subcats.includes(subcat)) {
       setSubcat(subcats[0]);
     }
@@ -583,7 +572,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
     setIsSaving(true);
     try {
       const idsArray = Array.from(selectedIds);
-      const categoryPath = `${dept}/${cat}/${subcat}`;
+      const categoryPath = `Woman/${cat}/${subcat}`;
       const finalTitle = title.trim() || subcat;
 
       const res = await fetch('/api/group/create', {
@@ -614,7 +603,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
     <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-xl p-6 pt-safe animate-in fade-in duration-200">
       <div className="flex items-center justify-between mb-6 mt-4">
         <h2 className="text-2xl font-light tracking-wide text-white">New Group</h2>
-        <button onClick={onClose} className="text-white/60 p-2 text-xl">✕</button>
+        <button onClick={onClose} className="text-white/60 p-2 text-xl hover:text-white transition">✕</button>
       </div>
       
       <div className="space-y-6 flex-1 overflow-y-auto hide-scrollbar pb-12">
@@ -639,14 +628,11 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
 
         <div className="space-y-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
           <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Category</label>
-          <select value={dept} onChange={(e) => setDept(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-            {Object.keys(TAXONOMY).map(d => <option key={d}>{d}</option>)}
-          </select>
           <select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-            {Object.keys(TAXONOMY[dept]).map(c => <option key={c}>{c}</option>)}
+            {Object.keys(TAXONOMY).map(c => <option key={c}>{c}</option>)}
           </select>
           <select value={subcat} onChange={(e) => setSubcat(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-            {TAXONOMY[dept][cat].map((s: string) => <option key={s}>{s}</option>)}
+            {TAXONOMY[cat].map((s: string) => <option key={s}>{s}</option>)}
           </select>
         </div>
 
@@ -715,7 +701,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   const [brand, setBrand] = useState(group.brand || '');
   
   const parts = group.category_path.split('/');
-  const [dept, setDept] = useState(parts[0] || 'Woman');
+  // parts[0] is "Woman", parts[1] is Category, parts[2] is Subcategory
   const [cat, setCat] = useState(parts[1] || 'Outerwear');
   const [subcat, setSubcat] = useState(parts[2] || 'Jackets');
   
@@ -725,12 +711,8 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const cats = Object.keys(TAXONOMY[dept]);
-    if (!cats.includes(cat)) setCat(cats[0]);
-  }, [dept]);
-
-  useEffect(() => {
-    const subcats = TAXONOMY[dept][cat];
+    // If taxonomy has been updated and the saved cat is missing, default to Outerwear
+    const subcats = TAXONOMY[cat] || TAXONOMY['Outerwear'];
     if (!subcats.includes(subcat)) setSubcat(subcats[0]);
     const options = getSizesForCategory(cat);
     if (!options.includes(size)) setSize(options[0]);
@@ -739,7 +721,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   async function handleSave() {
     setIsSaving(true);
     try {
-      const categoryPath = `${dept}/${cat}/${subcat}`;
+      const categoryPath = `Woman/${cat}/${subcat}`;
       const finalTitle = title.trim() || subcat;
       const updated = {
         ...group,
@@ -766,21 +748,17 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-black text-white">
-      <header className="sticky top-0 z-40 flex items-center justify-between bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
-         <button onClick={onBack} className="text-white/60 text-sm font-medium tracking-wide">← Back</button>
-         <button onClick={handleSave} disabled={isSaving} className="text-white font-semibold uppercase tracking-widest text-xs">
-           {isSaving ? 'Saving' : 'Done'}
-         </button>
+    <div className="flex min-h-[100dvh] flex-col bg-black text-white pb-[100px]">
+      <header className="sticky top-0 z-40 flex items-center justify-center bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
+         <h1 className="text-xl font-medium tracking-wide text-white/90 truncate">{title || 'Group Details'}</h1>
       </header>
       
-      <div className="flex-1 overflow-y-auto px-6 pt-6 pb-32 space-y-8">
+      <div className="flex-1 overflow-y-auto px-6 pt-6 pb-12 space-y-8">
         
         {/* Photos Section */}
         <div>
           <div className="flex justify-between items-center mb-4">
              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">Photos ({groupPhotos.length})</h3>
-             <button onClick={onAddPhotos} className="bg-white/10 px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold">+ Add</button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {groupPhotos.map((p: Photo) => {
@@ -790,7 +768,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
                   <img src={p.url} className="object-cover w-full h-full" />
                   <button onClick={() => onRemovePhoto(p.id)} className="absolute top-1 right-1 bg-black/80 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
                   {!isCover && (
-                    <button onClick={() => onSetCover(p.id)} className="absolute bottom-1 left-1 right-1 bg-black/80 backdrop-blur-md rounded text-[9px] py-1 text-center font-medium uppercase">Set Cover</button>
+                    <button onClick={() => onSetCover(p.id)} className="absolute bottom-1 left-1 right-1 bg-black/80 backdrop-blur-md rounded text-[9px] py-1 text-center font-medium uppercase hover:bg-black transition">Set Cover</button>
                   )}
                   {isCover && (
                     <div className="absolute bottom-0 left-0 right-0 bg-white text-black text-[9px] font-bold text-center py-1 uppercase tracking-widest">Cover</div>
@@ -806,24 +784,21 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Title</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white" />
+              <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Brand</label>
-              <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white" />
+              <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
             </div>
           </div>
 
           <div className="space-y-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Category</label>
-            <select value={dept} onChange={(e) => setDept(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-              {Object.keys(TAXONOMY).map(d => <option key={d}>{d}</option>)}
-            </select>
             <select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-              {Object.keys(TAXONOMY[dept]).map(c => <option key={c}>{c}</option>)}
+              {Object.keys(TAXONOMY).map(c => <option key={c}>{c}</option>)}
             </select>
             <select value={subcat} onChange={(e) => setSubcat(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
-              {TAXONOMY[dept][cat].map((s: string) => <option key={s}>{s}</option>)}
+              {(TAXONOMY[cat] || []).map((s: string) => <option key={s}>{s}</option>)}
             </select>
           </div>
 
@@ -844,11 +819,24 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" />
           </div>
         </div>
 
       </div>
+
+      {/* Floating Pill Footer for Detail View */}
+      <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center bg-black/80 backdrop-blur-3xl border border-white/20 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.8)] px-2 py-2 space-x-2">
+        <button onClick={onBack} className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button onClick={onAddPhotos} className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
+        </button>
+        <button onClick={handleSave} disabled={isSaving} className="flex h-12 w-16 items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition active:scale-90 disabled:opacity-50">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </footer>
     </div>
   );
 }
