@@ -116,6 +116,26 @@ function AppShell() {
   const [showCleanupModal, setShowCleanupModal] = useState(false);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [isProcessingGroups, setIsProcessingGroups] = useState(false);
+  const [isNuking, setIsNuking] = useState(false);
+
+  async function handleNuke() {
+    if (!sessionId) return;
+    const confirmNuke = confirm("DANGER: This will permanently delete ALL photos and groups in this session. Are you sure?");
+    if (!confirmNuke) return;
+    setIsNuking(true);
+    try {
+      await fetch('/api/session/nuke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      });
+      localStorage.removeItem('photo-pipeline-session');
+      window.location.reload();
+    } catch (err) {
+      alert("Failed to nuke session.");
+      setIsNuking(false);
+    }
+  }
 
   useEffect(() => {
     let sid = localStorage.getItem('photo-pipeline-session');
@@ -294,7 +314,16 @@ function AppShell() {
 
     return (
       <main className="flex min-h-[100dvh] flex-col bg-[#050505] text-white px-6 py-12">
-        <h1 className="text-2xl font-light tracking-wide mb-8">Processing to Drive</h1>
+        <header className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-light tracking-wide">Processing to Drive</h1>
+          <button onClick={() => {
+            setIsProcessingGroups(false);
+            if (filing === 0 && pending === 0) {
+              localStorage.removeItem('photo-pipeline-session');
+              window.location.reload();
+            }
+          }} className="text-white/40 hover:text-white p-2">✕</button>
+        </header>
         
         <div className="grid grid-cols-4 gap-2 mb-8">
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
@@ -398,9 +427,14 @@ function AppShell() {
     <main className="flex min-h-[100dvh] flex-col bg-black text-white selection:bg-white selection:text-black pb-[120px]">
       <header className="sticky top-0 z-40 flex flex-col justify-end bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-end justify-between">
-          <h1 className="text-xl font-medium tracking-wide text-white/90">
-            Resale Batch
-          </h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-medium tracking-wide text-white/90">
+              Resale Batch
+            </h1>
+            <button onClick={handleNuke} disabled={isNuking} className="p-1 text-red-500/60 hover:text-red-500 transition disabled:opacity-30" title="Wipe Session completely">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
           {uploading && uploadStats && (
             <p className="text-xs font-mono text-white/60 mb-1">
               {uploadStats.success} / {uploadStats.total} uploaded
