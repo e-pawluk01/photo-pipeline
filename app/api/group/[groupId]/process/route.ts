@@ -81,6 +81,26 @@ export async function POST(request: Request, { params }: { params: { groupId: st
       await uploadToDrive(folderId, driveFilename, buffer, mimeType);
     }
 
+    // 4.5 Generate and upload description file
+    const brandStr = group.brand || 'Unbranded';
+    const categoryLeaf = (group.category_path || '').split('/').pop()?.toLowerCase() || '';
+
+    const descriptionText = `｡°✩ Item Details ✩°｡⋆
+★ Brand: ${brandStr}
+★ Size: ${group.size}
+★ Condition: ${group.condition}
+
+⋆｡°✩ Please Read Carefully ✩°｡⋆
+★ Condition Note: We do our best to thoroughly inspect every piece! Any minor damages, stains, rips, or signs of wear are clearly shown in the photos and reflected in the price. Please swipe through all images before buying!
+★ What's included: Please note that this sale includes ONLY the ${categoryLeaf}. All other accessories, clothes, or props are for styling examples only.
+★ We have a dog and a bunny! While we do our absolute best to ensure every item is cleaned before shipping, we can't guarantee they are 100% free of stray hairs. Please keep this in mind if you have severe allergies!
+★ Shop Policies: For more information on returns, shipping, and other details, please check out the 'about' section on our profile.
+
+˚₊‧꒰ა ☆ ໒꒱ ‧₊˚ Tags: [Add tags here]`;
+
+    const descriptionBuffer = Buffer.from(descriptionText, 'utf-8');
+    await uploadToDrive(folderId, 'description.txt', descriptionBuffer, 'text/plain');
+
     // 5. Delete photos from DB
     const idsToDelete = photos.map(p => p.id);
     const { error: dbError } = await supabaseServer
