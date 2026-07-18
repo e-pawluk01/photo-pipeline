@@ -94,10 +94,14 @@ export async function POST(request: Request, { params }: { params: { groupId: st
 
     // 6. Delete photos from DB
     const idsToDelete = photos.map(p => p.id);
-    await supabaseServer
+    const { error: dbError } = await supabaseServer
       .from('photos')
       .delete()
       .in('id', idsToDelete);
+
+    if (dbError) {
+      throw new Error(`Failed to delete photos from DB: ${dbError.message}`);
+    }
 
     // 7. Update group to done
     await supabaseServer

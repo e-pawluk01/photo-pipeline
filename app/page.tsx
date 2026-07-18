@@ -315,7 +315,7 @@ function AppShell() {
           </div>
         </div>
 
-        <div className="space-y-3 overflow-y-auto">
+        <div className="space-y-3 overflow-y-auto pb-24">
           {groups.map(g => (
             <div key={g.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between">
               <div>
@@ -336,6 +336,20 @@ function AppShell() {
             </div>
           ))}
         </div>
+
+        {filing === 0 && pending === 0 && (
+          <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center bg-black/80 backdrop-blur-3xl border border-white/20 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.8)] px-2 py-2">
+            <button 
+              onClick={() => {
+                localStorage.removeItem('photo-pipeline-session');
+                window.location.reload();
+              }} 
+              className="flex h-12 w-16 items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition active:scale-90"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </footer>
+        )}
       </main>
     );
   }
