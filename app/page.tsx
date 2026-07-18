@@ -115,27 +115,6 @@ function AppShell() {
   // Send State
   const [showCleanupModal, setShowCleanupModal] = useState(false);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
-  const [isProcessingGroups, setIsProcessingGroups] = useState(false);
-  const [isNuking, setIsNuking] = useState(false);
-
-  async function handleNuke() {
-    if (!sessionId) return;
-    const confirmNuke = confirm("DANGER: This will permanently delete ALL photos and groups in this session. Are you sure?");
-    if (!confirmNuke) return;
-    setIsNuking(true);
-    try {
-      await fetch('/api/session/nuke', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      });
-      localStorage.removeItem('photo-pipeline-session');
-      window.location.reload();
-    } catch (err) {
-      alert("Failed to nuke session.");
-      setIsNuking(false);
-    }
-  }
 
   useEffect(() => {
     let sid = localStorage.getItem('photo-pipeline-session');
@@ -162,6 +141,38 @@ function AppShell() {
     }
     loadData();
   }, [sessionId]);
+
+  useEffect(() => {
+    if (activeTab === 'progress' && sessionId) {
+      let active = true;
+
+      const fetchProgress = async () => {
+        try {
+          const res = await fetch(`/api/photo/list?sessionId=${sessionId}&includeDone=true`);
+          const data = await res.json();
+          if (res.ok && active && data.groups) {
+            setGroups(data.groups);
+          }
+        } catch (err) {}
+      }
+
+      fetchProgress();
+
+      const interval = setInterval(() => {
+        setGroups(prev => {
+          if (prev.some(g => g.status === 'pending' || g.status === 'filing')) {
+            fetchProgress();
+          }
+          return prev;
+        });
+      }, 3000);
+
+      return () => {
+        active = false;
+        clearInterval(interval);
+      };
+    }
+  }, [activeTab, sessionId]);
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!sessionId) return;
@@ -262,8 +273,8 @@ function AppShell() {
   }
 
   async function startProcessing(groupsToProcess: Group[]) {
-    setIsProcessingGroups(true);
     for (const g of groupsToProcess) {
+      if (g.status === 'done') continue;
       // Optimistic update
       setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
       try {
@@ -292,8 +303,10 @@ function AppShell() {
       if (res.ok) {
         setPhotos(prev => prev.filter(p => p.group_id !== null));
         setShowCleanupModal(false);
+        setActiveTab('progress');
         // Begin the processing loop
-        startProcessing(groups);
+        const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed');
+        startProcessing(groupsToProcess);
       } else {
         throw new Error('Cleanup failed');
       }
@@ -305,83 +318,6 @@ function AppShell() {
   }
 
   const loosePhotos = photos.filter(p => !p.group_id);
-
-  if (isProcessingGroups) {
-    const filing = groups.filter(g => g.status === 'filing').length;
-    const done = groups.filter(g => g.status === 'done').length;
-    const failed = groups.filter(g => g.status === 'failed').length;
-    const pending = groups.filter(g => g.status === 'pending').length;
-
-    return (
-      <main className="flex min-h-[100dvh] flex-col bg-[#050505] text-white px-6 py-12">
-        <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-light tracking-wide">Processing to Drive</h1>
-          <button onClick={() => {
-            setIsProcessingGroups(false);
-            if (filing === 0 && pending === 0) {
-              localStorage.removeItem('photo-pipeline-session');
-              window.location.reload();
-            }
-          }} className="text-white/40 hover:text-white p-2">✕</button>
-        </header>
-        
-        <div className="grid grid-cols-4 gap-2 mb-8">
-          <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
-            <div className="text-xl font-mono">{pending}</div>
-            <div className="text-[9px] uppercase tracking-widest text-white/40 mt-1">Pending</div>
-          </div>
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
-            <div className="text-xl font-mono text-blue-400">{filing}</div>
-            <div className="text-[9px] uppercase tracking-widest text-blue-400/60 mt-1">Filing</div>
-          </div>
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
-            <div className="text-xl font-mono text-green-400">{done}</div>
-            <div className="text-[9px] uppercase tracking-widest text-green-400/60 mt-1">Done</div>
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
-            <div className="text-xl font-mono text-red-400">{failed}</div>
-            <div className="text-[9px] uppercase tracking-widest text-red-400/60 mt-1">Failed</div>
-          </div>
-        </div>
-
-        <div className="space-y-3 overflow-y-auto pb-24">
-          {groups.map(g => (
-            <div key={g.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-medium">{g.title}</h3>
-                {g.error_message && <p className="text-xs text-red-400 mt-1">{g.error_message}</p>}
-                {g.drive_folder_link && (
-                  <a href={g.drive_folder_link} target="_blank" rel="noreferrer" className="text-xs text-blue-400 mt-1 block hover:underline">
-                    View in Drive ↗
-                  </a>
-                )}
-              </div>
-              <div className="text-xs uppercase tracking-widest font-bold">
-                {g.status === 'pending' && <span className="text-white/40">Pending</span>}
-                {g.status === 'filing' && <span className="text-blue-400 animate-pulse">Filing...</span>}
-                {g.status === 'done' && <span className="text-green-400">✓ Done</span>}
-                {g.status === 'failed' && <span className="text-red-400">Failed</span>}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filing === 0 && pending === 0 && (
-          <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center bg-black/80 backdrop-blur-3xl border border-white/20 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.8)] px-2 py-2">
-            <button 
-              onClick={() => {
-                localStorage.removeItem('photo-pipeline-session');
-                window.location.reload();
-              }} 
-              className="flex h-12 w-16 items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition active:scale-90"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-          </footer>
-        )}
-      </main>
-    );
-  }
 
   // If viewing a detail page
   if (activeGroupId) {
@@ -427,14 +363,9 @@ function AppShell() {
     <main className="flex min-h-[100dvh] flex-col bg-black text-white selection:bg-white selection:text-black pb-[120px]">
       <header className="sticky top-0 z-40 flex flex-col justify-end bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-end justify-between">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-medium tracking-wide text-white/90">
-              Resale Batch
-            </h1>
-            <button onClick={handleNuke} disabled={isNuking} className="p-1 text-red-500/60 hover:text-red-500 transition disabled:opacity-30" title="Wipe Session completely">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-            </button>
-          </div>
+          <h1 className="text-xl font-medium tracking-wide text-white/90">
+            Resale Batch
+          </h1>
           {uploading && uploadStats && (
             <p className="text-xs font-mono text-white/60 mb-1">
               {uploadStats.success} / {uploadStats.total} uploaded
@@ -542,6 +473,48 @@ function AppShell() {
                      </div>
                    );
                  })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'progress' && (
+          <div className="flex flex-col space-y-4 pb-12">
+            {groups.length === 0 ? (
+              <div className="flex h-[60vh] flex-col items-center justify-center opacity-50">
+                <div className="text-sm font-light tracking-widest text-white/40 uppercase">No Groups Yet</div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {groups.map(g => (
+                  <div key={g.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium">{g.title}</h3>
+                      {g.error_message && <p className="text-xs text-red-400 mt-1">{g.error_message}</p>}
+                      {g.drive_folder_link && (
+                        <a href={g.drive_folder_link} target="_blank" rel="noreferrer" className="text-xs text-blue-400 mt-1 block hover:underline">
+                          View in Drive ↗
+                        </a>
+                      )}
+                    </div>
+                    <div className="text-xs uppercase tracking-widest font-bold flex items-center gap-4">
+                      {g.status === 'pending' && <span className="text-white/40">Pending</span>}
+                      {g.status === 'filing' && <span className="text-blue-400 animate-pulse">Filing...</span>}
+                      {g.status === 'done' && <span className="text-green-400">✓ Done</span>}
+                      {g.status === 'failed' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-400">Failed</span>
+                          <button 
+                            onClick={() => startProcessing([g])}
+                            className="bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition active:scale-95 text-[10px]"
+                          >
+                            Retry
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

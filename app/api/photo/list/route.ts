@@ -9,6 +9,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
+    const includeDone = searchParams.get('includeDone') === 'true';
 
     console.log('API /photo/list called with sessionId:', sessionId);
 
@@ -31,11 +32,17 @@ export async function GET(request: Request) {
     console.log(`API /photo/list found ${photosData.length} photos for session ${sessionId}`);
 
     // Fetch groups for session
-    const { data: groupsData, error: groupsError } = await supabaseServer
+    let query = supabaseServer
       .from('groups')
       .select('id, title, category_path, brand, condition, size, notes, cover_photo_id, created_at, status, error_message, drive_folder_link')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: false });
+      
+    if (!includeDone) {
+      query = query.neq('status', 'done');
+    }
+
+    const { data: groupsData, error: groupsError } = await query;
 
     if (groupsError) {
       return NextResponse.json({ error: groupsError.message }, { status: 500 });

@@ -81,18 +81,7 @@ export async function POST(request: Request, { params }: { params: { groupId: st
       await uploadToDrive(folderId, driveFilename, buffer, mimeType);
     }
 
-    // 5. Cleanup Supabase Storage
-    const pathsToDelete = photos.map(p => p.storage_path);
-    const { error: storageError } = await supabaseServer.storage
-      .from('photo-imports')
-      .remove(pathsToDelete);
-
-    if (storageError) {
-      console.error('Failed to cleanup storage after Drive upload:', storageError);
-      // We will still proceed to mark as done, but this is a warning.
-    }
-
-    // 6. Delete photos from DB
+    // 5. Delete photos from DB
     const idsToDelete = photos.map(p => p.id);
     const { error: dbError } = await supabaseServer
       .from('photos')
@@ -101,6 +90,17 @@ export async function POST(request: Request, { params }: { params: { groupId: st
 
     if (dbError) {
       throw new Error(`Failed to delete photos from DB: ${dbError.message}`);
+    }
+
+    // 6. Cleanup Supabase Storage
+    const pathsToDelete = photos.map(p => p.storage_path);
+    const { error: storageError } = await supabaseServer.storage
+      .from('photo-imports')
+      .remove(pathsToDelete);
+
+    if (storageError) {
+      console.error('Failed to cleanup storage after Drive upload:', storageError);
+      // We will still proceed to mark as done, but this is a warning.
     }
 
     // 7. Update group to done
