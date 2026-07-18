@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     // Fetch groups for session
     const { data: groupsData, error: groupsError } = await supabaseServer
       .from('groups')
-      .select('id, title, category_path, brand, condition, size, notes, cover_photo_id, created_at')
+      .select('id, title, category_path, brand, condition, size, notes, cover_photo_id, created_at, status, error_message, drive_folder_link')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: false });
 

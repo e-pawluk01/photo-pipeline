@@ -85,7 +85,10 @@ type Group = {
   size: string; 
   notes: string | null; 
   cover_photo_id: string; 
-  created_at: string 
+  created_at: string;
+  status: 'pending' | 'filing' | 'done' | 'failed';
+  drive_folder_link: string | null;
+  error_message: string | null;
 };
 
 function AppShell() {
@@ -112,7 +115,7 @@ function AppShell() {
   // Send State
   const [showCleanupModal, setShowCleanupModal] = useState(false);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
-  const [readyToProcess, setReadyToProcess] = useState(false);
+  const [isProcessingGroups, setIsProcessingGroups] = useState(false);
 
   useEffect(() => {
     let sid = localStorage.getItem('photo-pipeline-session');
@@ -238,6 +241,25 @@ function AppShell() {
     }
   }
 
+  async function startProcessing(groupsToProcess: Group[]) {
+    setIsProcessingGroups(true);
+    for (const g of groupsToProcess) {
+      // Optimistic update
+      setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
+      try {
+        const res = await fetch(`/api/group/${g.id}/process`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'done', drive_folder_link: data.folderLink } : x));
+        } else {
+          setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: data.error } : x));
+        }
+      } catch (err: any) {
+        setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: err.message } : x));
+      }
+    }
+  }
+
   async function handleCleanup() {
     if (!sessionId) return;
     setIsCleaningUp(true);
@@ -250,7 +272,8 @@ function AppShell() {
       if (res.ok) {
         setPhotos(prev => prev.filter(p => p.group_id !== null));
         setShowCleanupModal(false);
-        setReadyToProcess(true);
+        // Begin the processing loop
+        startProcessing(groups);
       } else {
         throw new Error('Cleanup failed');
       }
@@ -263,14 +286,56 @@ function AppShell() {
 
   const loosePhotos = photos.filter(p => !p.group_id);
 
-  if (readyToProcess) {
+  if (isProcessingGroups) {
+    const filing = groups.filter(g => g.status === 'filing').length;
+    const done = groups.filter(g => g.status === 'done').length;
+    const failed = groups.filter(g => g.status === 'failed').length;
+    const pending = groups.filter(g => g.status === 'pending').length;
+
     return (
-      <main className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#050505] text-white px-6 text-center">
-        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <main className="flex min-h-[100dvh] flex-col bg-[#050505] text-white px-6 py-12">
+        <h1 className="text-2xl font-light tracking-wide mb-8">Processing to Drive</h1>
+        
+        <div className="grid grid-cols-4 gap-2 mb-8">
+          <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
+            <div className="text-xl font-mono">{pending}</div>
+            <div className="text-[9px] uppercase tracking-widest text-white/40 mt-1">Pending</div>
+          </div>
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
+            <div className="text-xl font-mono text-blue-400">{filing}</div>
+            <div className="text-[9px] uppercase tracking-widest text-blue-400/60 mt-1">Filing</div>
+          </div>
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
+            <div className="text-xl font-mono text-green-400">{done}</div>
+            <div className="text-[9px] uppercase tracking-widest text-green-400/60 mt-1">Done</div>
+          </div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+            <div className="text-xl font-mono text-red-400">{failed}</div>
+            <div className="text-[9px] uppercase tracking-widest text-red-400/60 mt-1">Failed</div>
+          </div>
         </div>
-        <h1 className="text-2xl font-light tracking-wide mb-2">Ready to Process</h1>
-        <p className="text-white/40 text-sm tracking-widest uppercase">Groups built and cleaned up successfully.</p>
+
+        <div className="space-y-3 overflow-y-auto">
+          {groups.map(g => (
+            <div key={g.id} className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium">{g.title}</h3>
+                {g.error_message && <p className="text-xs text-red-400 mt-1">{g.error_message}</p>}
+                {g.drive_folder_link && (
+                  <a href={g.drive_folder_link} target="_blank" rel="noreferrer" className="text-xs text-blue-400 mt-1 block hover:underline">
+                    View in Drive ↗
+                  </a>
+                )}
+              </div>
+              <div className="text-xs uppercase tracking-widest font-bold">
+                {g.status === 'pending' && <span className="text-white/40">Pending</span>}
+                {g.status === 'filing' && <span className="text-blue-400 animate-pulse">Filing...</span>}
+                {g.status === 'done' && <span className="text-green-400">✓ Done</span>}
+                {g.status === 'failed' && <span className="text-red-400">Failed</span>}
+              </div>
+            </div>
+          ))}
+        </div>
       </main>
     );
   }
@@ -452,7 +517,10 @@ function AppShell() {
             onClick={() => {
               setIsSelectionMode(!isSelectionMode);
               setSelectedPhotoIds(new Set());
-              if (addingToGroupId) setAddingToGroupId(null);
+              if (addingToGroupId) {
+                setActiveGroupId(addingToGroupId);
+                setAddingToGroupId(null);
+              }
             }} 
             className={`flex h-12 w-16 items-center justify-center rounded-full transition active:scale-90 ${isSelectionMode ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}
           >

@@ -75,6 +75,47 @@ export async function ensureDateFolder(dateLabel: string): Promise<{
 }
 
 /**
+ * Finds a folder by name under the parent folder, or creates it if it doesn't exist.
+ */
+export async function ensureFolder(name: string, parentId: string): Promise<{
+  folderId: string;
+  folderLink: string;
+}> {
+  const drive = getDriveClient();
+  const escapedName = name.replace(/'/g, "\\'");
+  const query = [
+    `name = '${escapedName}'`,
+    `'${parentId}' in parents`,
+    "mimeType = 'application/vnd.google-apps.folder'",
+    'trashed = false',
+  ].join(' and ');
+  const existing = await drive.files.list({
+    q: query,
+    fields: 'files(id, webViewLink)',
+    spaces: 'drive',
+  });
+  if (existing.data.files && existing.data.files.length > 0) {
+    const folder = existing.data.files[0];
+    return {
+      folderId: folder.id as string,
+      folderLink: folder.webViewLink as string,
+    };
+  }
+  const created = await drive.files.create({
+    requestBody: {
+      name: name,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [parentId],
+    },
+    fields: 'id, webViewLink',
+  });
+  return {
+    folderId: created.data.id as string,
+    folderLink: created.data.webViewLink as string,
+  };
+}
+
+/**
  * Uploads a single file buffer into the given Drive folder.
  */
 export async function uploadToDrive(
