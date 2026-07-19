@@ -57,6 +57,9 @@ export async function POST(request: Request, { params }: { params: { groupId: st
 
     let aiTitlePromise: Promise<string> | null = null;
 
+    // Determine the actual cover photo to use (fallback to first photo if cover is missing/dangling)
+    const actualCoverPhoto = photos.find(p => p.id === group.cover_photo_id) || photos[0];
+
     // 4. Download and upload each photo
     for (const photo of photos) {
       // Download from Supabase Storage
@@ -78,7 +81,7 @@ export async function POST(request: Request, { params }: { params: { groupId: st
       if (ext === 'png') mimeType = 'image/png';
       else if (ext === 'heic') mimeType = 'image/heic';
 
-      if (photo.id === group.cover_photo_id || (!group.cover_photo_id && photo === photos[0])) {
+      if (photo === actualCoverPhoto) {
         const categoryLeaf = (group.category_path || '').split('/').pop() || '';
         const brandStr = group.brand || 'Unbranded';
         const notesStr = group.notes || 'None';
@@ -107,6 +110,7 @@ Brand: ${brandStr}
 Notes: ${notesStr}`;
 
         try {
+          console.log(`[Gemini] Attempting Gemini call for group ${groupId} with model gemini-3.1-flash-lite. photo.id=${photo.id}, cover_id=${group.cover_photo_id}`);
           const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
           aiTitlePromise = ai.models.generateContent({
             model: 'gemini-3.1-flash-lite',
