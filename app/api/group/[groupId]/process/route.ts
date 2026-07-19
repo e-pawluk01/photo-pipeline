@@ -156,7 +156,23 @@ Notes: ${notesStr}`;
     const descriptionBuffer = Buffer.from(descriptionText, 'utf-8');
     await uploadToDrive(folderId, 'description.txt', descriptionBuffer, 'text/plain');
 
-    // 5. Delete photos from DB
+    // 5. Save drive_folder_link early to preserve success state
+    await supabaseServer
+      .from('groups')
+      .update({ drive_folder_link: folderLink })
+      .eq('id', groupId);
+
+    // 6. Cleanup Supabase Storage FIRST
+    const pathsToDelete = photos.map(p => p.storage_path);
+    const { error: storageError } = await supabaseServer.storage
+      .from('photo-imports')
+      .remove(pathsToDelete);
+
+    if (storageError) {
+      throw new Error(`CLEANUP_FAILED:Uploaded to Drive successfully, but Supabase cleanup failed — files may remain in storage. (${storageError.message})`);
+    }
+
+    // 7. Delete photos from DB
     const idsToDelete = photos.map(p => p.id);
     const { error: dbError } = await supabaseServer
       .from('photos')
@@ -164,26 +180,14 @@ Notes: ${notesStr}`;
       .in('id', idsToDelete);
 
     if (dbError) {
-      throw new Error(`Failed to delete photos from DB: ${dbError.message}`);
+      throw new Error(`CLEANUP_FAILED:Uploaded to Drive successfully, but Supabase DB cleanup failed. (${dbError.message})`);
     }
 
-    // 6. Cleanup Supabase Storage
-    const pathsToDelete = photos.map(p => p.storage_path);
-    const { error: storageError } = await supabaseServer.storage
-      .from('photo-imports')
-      .remove(pathsToDelete);
-
-    if (storageError) {
-      console.error('Failed to cleanup storage after Drive upload:', storageError);
-      // We will still proceed to mark as done, but this is a warning.
-    }
-
-    // 7. Update group to done
+    // 8. Update group to done
     await supabaseServer
       .from('groups')
       .update({ 
-        status: 'done', 
-        drive_folder_link: folderLink 
+        status: 'done'
       })
       .eq('id', groupId);
 
@@ -192,15 +196,23 @@ Notes: ${notesStr}`;
   } catch (error: any) {
     console.error(`Group ${groupId} processing failed:`, error);
     
-    // Attempt to mark as failed
+    let statusToSet = 'failed';
+    let msg = error.message || 'Unknown error';
+
+    if (msg.startsWith('CLEANUP_FAILED:')) {
+      statusToSet = 'cleanup_failed';
+      msg = msg.replace('CLEANUP_FAILED:', '');
+    }
+
+    // Attempt to mark as failed or cleanup_failed
     await supabaseServer
       .from('groups')
       .update({ 
-        status: 'failed', 
-        error_message: error.message || 'Unknown error' 
+        status: statusToSet, 
+        error_message: msg 
       })
       .eq('id', groupId);
 
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

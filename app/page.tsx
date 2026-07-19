@@ -86,7 +86,7 @@ type Group = {
   notes: string | null; 
   cover_photo_id: string; 
   created_at: string;
-  status: 'pending' | 'filing' | 'done' | 'failed';
+  status: 'pending' | 'filing' | 'done' | 'failed' | 'cleanup_failed';
   drive_folder_link: string | null;
   error_message: string | null;
 };
@@ -312,7 +312,7 @@ function AppShell() {
         setShowCleanupModal(false);
         setActiveTab('progress');
         // Begin the processing loop
-        const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed');
+        const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed' || g.status === 'cleanup_failed');
         startProcessing(groupsToProcess);
       } else {
         throw new Error('Cleanup failed');
@@ -513,6 +513,17 @@ function AppShell() {
                       {g.status === 'pending' && <span className="text-white/40">DRAFT</span>}
                       {g.status === 'filing' && <span className="text-blue-400 animate-pulse">Filing...</span>}
                       {g.status === 'done' && <span className="text-green-400">✓ Done</span>}
+                      {g.status === 'cleanup_failed' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-orange-400">Cleanup Failed</span>
+                          <button 
+                            onClick={() => startProcessing([g])}
+                            className="bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition active:scale-95 text-[10px]"
+                          >
+                            Retry Cleanup
+                          </button>
+                        </div>
+                      )}
                       {g.status === 'failed' && (
                         <div className="flex items-center gap-2">
                           <span className="text-red-400">Failed</span>
