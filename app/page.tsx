@@ -346,6 +346,14 @@ function AppShell() {
           onRemovePhoto={async (photoId: string) => {
              // quick optimistic update
              setPhotos(prev => prev.map(p => p.id === photoId ? { ...p, group_id: null } : p));
+             
+             // Count remaining photos in the active group
+             const remainingInGroup = photos.filter(p => p.group_id === activeGroupId && p.id !== photoId).length;
+             if (remainingInGroup === 0) {
+               setGroups(prev => prev.filter(g => g.id !== activeGroupId));
+               setActiveGroupId(null);
+             }
+
              fetch('/api/photo/assign', {
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
@@ -880,7 +888,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Title</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
+              <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-auto bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm outline-none text-white focus:border-white/50 transition-colors" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Brand</label>
