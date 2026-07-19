@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/genai": "^2.12.0",
     "@supabase/supabase-js": "^2.110.7",
     "googleapis": "140.0.1",
     "heic-convert": "2.1.0",
