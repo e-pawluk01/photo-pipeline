@@ -298,6 +298,23 @@ function AppShell() {
     refetchMainData();
   }
 
+  async function retryCleanup(g: Group) {
+    setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
+    setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
+    try {
+      const res = await fetch(`/api/group/${g.id}/retry-cleanup`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'done', error_message: null } : x));
+      } else {
+        setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'cleanup_failed', error_message: data.error } : x));
+      }
+    } catch (err: any) {
+      setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'cleanup_failed', error_message: err.message } : x));
+    }
+    refetchMainData();
+  }
+
   async function handleCleanup() {
     if (!sessionId) return;
     setIsCleaningUp(true);
@@ -517,7 +534,7 @@ function AppShell() {
                         <div className="flex items-center gap-2">
                           <span className="text-orange-400">Cleanup Failed</span>
                           <button 
-                            onClick={() => startProcessing([g])}
+                            onClick={() => retryCleanup(g)}
                             className="bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition active:scale-95 text-[10px]"
                           >
                             Retry Cleanup
