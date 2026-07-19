@@ -109,7 +109,7 @@ Notes: ${notesStr}`;
         try {
           const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
           aiTitlePromise = ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.1-flash-lite',
             contents: [
               promptText,
               { inlineData: { data: buffer.toString('base64'), mimeType } }
