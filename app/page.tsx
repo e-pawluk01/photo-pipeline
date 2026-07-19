@@ -376,29 +376,26 @@ function AppShell() {
 
   return (
     <main className="flex min-h-[100dvh] flex-col bg-black text-white selection:bg-white selection:text-black pb-[120px]">
-      <header className="sticky top-0 z-40 flex flex-col justify-end bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-end justify-between">
-          <h1 className="text-xl font-medium tracking-wide text-white/90">
-            Resale Batch
-          </h1>
-          {uploading && uploadStats && (
-            <p className="text-xs font-mono text-white/60 mb-1">
-              {uploadStats.success} / {uploadStats.total} uploaded
-            </p>
-          )}
-        </div>
-        <div className="mt-6 flex space-x-6">
+      <header className="sticky top-8 z-40 flex flex-col items-center pointer-events-none">
+        <div className="bg-black/80 backdrop-blur-3xl border border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.8)] rounded-full flex items-center p-1 pointer-events-auto">
           <TabButton active={activeTab === 'photos'} onClick={() => setActiveTab('photos')} label="Photos" />
           <TabButton active={activeTab === 'groups'} onClick={() => setActiveTab('groups')} label="Groups" />
           <TabButton active={activeTab === 'progress'} onClick={() => setActiveTab('progress')} label="Progress" />
         </div>
         
-        {uploading && (
-          <div className="absolute bottom-0 left-0 h-[2px] bg-white transition-all duration-300 shadow-[0_0_8px_rgba(255,255,255,0.8)]" style={{ width: `${progress}%` }} />
+        {uploading && uploadStats && (
+          <div className="mt-4 bg-black/80 backdrop-blur-xl border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3 pointer-events-auto shadow-xl">
+            <div className="w-24 h-1 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white transition-all duration-300" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-[10px] font-mono text-white/80 uppercase tracking-wider">
+              {uploadStats.success} / {uploadStats.total} Uploaded
+            </p>
+          </div>
         )}
       </header>
 
-      <div className="flex-1 px-6 pt-6">
+      <div className="flex-1 px-6 pt-24">
         {activeTab === 'photos' && (
           <div className="flex flex-col space-y-4 pb-12">
              {photos.length === 0 && !uploading ? (
@@ -949,9 +946,8 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
 
 function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} className={`relative pb-2 text-[13px] font-medium uppercase tracking-wider transition-colors ${active ? 'text-white' : 'text-white/40'}`}>
+    <button onClick={onClick} className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${active ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}>
       {label}
-      {active && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
     </button>
   );
 }
