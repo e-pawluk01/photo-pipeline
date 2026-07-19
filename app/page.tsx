@@ -853,11 +853,13 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-black text-white pb-[100px]">
-      <header className="sticky top-0 z-40 flex items-center justify-center bg-black/60 px-6 pb-4 pt-16 backdrop-blur-xl border-b border-white/10">
-         <h1 className="text-xl font-medium tracking-wide text-white/90 truncate">{title || 'Group Details'}</h1>
+      <header className="sticky top-8 z-40 flex items-center justify-center pointer-events-none">
+         <div className="bg-black/80 backdrop-blur-3xl border border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.8)] rounded-full px-8 py-3 pointer-events-auto max-w-[80vw]">
+           <h1 className="text-xs font-bold tracking-[0.2em] uppercase text-white/90 truncate">{title || 'Group Details'}</h1>
+         </div>
       </header>
       
-      <div className="flex-1 overflow-y-auto px-6 pt-6 pb-12 space-y-8">
+      <div className="flex-1 overflow-y-auto px-6 pt-12 pb-12 space-y-8">
         
         {/* Photos Section */}
         <div>
