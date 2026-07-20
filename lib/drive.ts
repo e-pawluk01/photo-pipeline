@@ -141,3 +141,29 @@ export async function uploadToDrive(
     webViewLink: res.data.webViewLink as string,
   };
 }
+
+/**
+ * Lists the immediate contents of a Drive folder.
+ */
+export async function listFolderContents(folderId: string): Promise<{ id: string; name: string; mimeType: string }[]> {
+  const drive = getDriveClient();
+  const query = [
+    `'${folderId}' in parents`,
+    'trashed = false'
+  ].join(' and ');
+  
+  const res = await drive.files.list({
+    q: query,
+    fields: 'files(id, name, mimeType)',
+    spaces: 'drive',
+    orderBy: 'folder, name'
+  });
+  
+  if (!res.data.files) return [];
+  
+  return res.data.files.map(f => ({
+    id: f.id as string,
+    name: f.name as string,
+    mimeType: f.mimeType as string
+  }));
+}

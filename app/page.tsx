@@ -89,6 +89,9 @@ type Group = {
   status: 'pending' | 'filing' | 'done' | 'failed' | 'cleanup_failed';
   drive_folder_link: string | null;
   error_message: string | null;
+  measurements: string | null;
+  generate_cover: boolean;
+  reference_photo_id: string | null;
 };
 
 function AppShell() {
@@ -683,6 +686,9 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [size, setSize] = useState(CLOTHING_SIZES[2]);
   const [condition, setCondition] = useState('Very good');
   const [notes, setNotes] = useState('');
+  const [measurements, setMeasurements] = useState('');
+  const [generateCover, setGenerateCover] = useState(false);
+  const [referencePhotoId, setReferencePhotoId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -714,6 +720,9 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           condition,
           size,
           notes,
+          measurements,
+          generate_cover: generateCover,
+          reference_photo_id: referencePhotoId,
           photoIds: idsArray,
           cover_photo_id: idsArray[0],
           session_id: sessionId
@@ -781,12 +790,40 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
         </div>
 
         <div>
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Measurements</label>
+          <textarea 
+            value={measurements} onChange={(e) => setMeasurements(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-white/50 min-h-[80px] resize-none"
+            placeholder="e.g. Pit to pit: 20 inches"
+          />
+        </div>
+
+        <div>
           <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Notes</label>
           <textarea 
             value={notes} onChange={(e) => setNotes(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-white/50 min-h-[80px] resize-none"
-            placeholder="Condition details..."
+            placeholder="Further details..."
           />
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <label className="flex items-center space-x-3 cursor-pointer">
+            <input 
+              type="checkbox" 
+              checked={generateCover} 
+              onChange={(e) => setGenerateCover(e.target.checked)}
+              className="w-5 h-5 accent-white cursor-pointer"
+            />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">Generate Cover?</span>
+          </label>
+          
+          {generateCover && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Reference Photo</label>
+              <DriveFolderBrowser onFileSelected={setReferencePhotoId} selectedFileId={referencePhotoId} />
+            </div>
+          )}
         </div>
 
         <div>
@@ -810,7 +847,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
 
       <div className="mt-4 pb-safe border-t border-white/10 pt-4">
         <button 
-          onClick={handleSubmit} disabled={isSaving || selectedIds.size === 0}
+          onClick={handleSubmit} disabled={isSaving || selectedIds.size === 0 || (generateCover && !referencePhotoId)}
           className="w-full bg-white text-black py-4 rounded-xl text-sm font-bold tracking-widest uppercase disabled:opacity-50"
         >
           {isSaving ? 'Saving...' : 'Create'}
@@ -837,6 +874,9 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   const [size, setSize] = useState(group.size);
   const [condition, setCondition] = useState(group.condition);
   const [notes, setNotes] = useState(group.notes || '');
+  const [measurements, setMeasurements] = useState(group.measurements || '');
+  const [generateCover, setGenerateCover] = useState(group.generate_cover || false);
+  const [referencePhotoId, setReferencePhotoId] = useState<string | null>(group.reference_photo_id || null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -860,6 +900,9 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
         condition,
         size,
         notes,
+        measurements,
+        generate_cover: generateCover,
+        reference_photo_id: referencePhotoId,
       };
       const res = await fetch('/api/group/edit', {
         method: 'POST',
@@ -949,8 +992,32 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
           </div>
 
           <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Measurements</label>
+            <textarea value={measurements} onChange={(e) => setMeasurements(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="e.g. Pit to pit: 20 inches" />
+          </div>
+
+          <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="Further details..." />
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={generateCover} 
+                onChange={(e) => setGenerateCover(e.target.checked)}
+                className="w-5 h-5 accent-white cursor-pointer"
+              />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">Generate Cover?</span>
+            </label>
+            
+            {generateCover && (
+              <div className="mt-4 border-t border-white/10 pt-4">
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Reference Photo</label>
+                <DriveFolderBrowser onFileSelected={setReferencePhotoId} selectedFileId={referencePhotoId} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -964,7 +1031,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
         <button onClick={onAddPhotos} className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
         </button>
-        <button onClick={handleSave} disabled={isSaving} className="flex h-12 w-16 items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition active:scale-90 disabled:opacity-50">
+        <button onClick={handleSave} disabled={isSaving || (generateCover && !referencePhotoId)} className="flex h-12 w-16 items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition active:scale-90 disabled:opacity-50">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </button>
       </footer>
@@ -1016,5 +1083,89 @@ function PasscodeGate({ onUnlock, verify }: any) {
         </button>
       </form>
     </main>
+  );
+}
+
+type DriveItem = { id: string; name: string; mimeType: string };
+
+function DriveFolderBrowser({ onFileSelected, selectedFileId }: { onFileSelected: (id: string | null) => void, selectedFileId: string | null }) {
+  const [levels, setLevels] = useState<{ items: DriveItem[], selectedId: string | null }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/drive/browse').then(res => res.json()).then(data => {
+      setLevels([{ items: data.contents || [], selectedId: null }]);
+      setLoading(false);
+    });
+  }, []);
+
+  async function handleSelect(levelIndex: number, itemId: string) {
+    const level = levels[levelIndex];
+    const item = level.items.find(i => i.id === itemId);
+    
+    if (!item) {
+      const nextLevels = levels.slice(0, levelIndex + 1);
+      nextLevels[levelIndex] = { ...level, selectedId: null };
+      setLevels(nextLevels);
+      onFileSelected(null);
+      return;
+    }
+
+    const nextLevels = levels.slice(0, levelIndex + 1);
+    nextLevels[levelIndex] = { ...level, selectedId: itemId };
+
+    if (item.mimeType === 'application/vnd.google-apps.folder') {
+      onFileSelected(null);
+      setLevels(nextLevels);
+      try {
+        const res = await fetch(`/api/drive/browse?folderId=${item.id}`);
+        const data = await res.json();
+        setLevels([...nextLevels, { items: data.contents || [], selectedId: null }]);
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      if (item.mimeType.startsWith('image/')) {
+        setLevels(nextLevels);
+        onFileSelected(item.id);
+      } else {
+        alert("Please select an image file.");
+        nextLevels[levelIndex] = { ...level, selectedId: null };
+        setLevels(nextLevels);
+        onFileSelected(null);
+      }
+    }
+  }
+
+  if (loading) return <div className="text-[10px] text-white/40 animate-pulse mt-2">Loading folders...</div>;
+
+  return (
+    <div className="space-y-2 mt-2">
+      {levels.map((level, i) => (
+        <select 
+          key={i} 
+          value={level.selectedId || ''} 
+          onChange={(e) => handleSelect(i, e.target.value)}
+          className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none text-xs"
+        >
+          <option value="">-- Select --</option>
+          {level.items.map(item => (
+            <option 
+              key={item.id} 
+              value={item.id}
+              disabled={!item.mimeType.startsWith('image/') && item.mimeType !== 'application/vnd.google-apps.folder'}
+            >
+              {item.mimeType === 'application/vnd.google-apps.folder' ? '📁 ' : '🖼️ '} 
+              {item.name}
+            </option>
+          ))}
+        </select>
+      ))}
+      {selectedFileId && (
+        <div className="text-[10px] text-green-400 font-mono tracking-widest uppercase pt-1">
+          ✓ Reference Photo Selected
+        </div>
+      )}
+    </div>
   );
 }

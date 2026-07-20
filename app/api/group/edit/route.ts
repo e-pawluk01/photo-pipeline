@@ -3,7 +3,7 @@ import { supabaseServer } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { id, title, category_path, brand, condition, size, notes, cover_photo_id } = await request.json();
+    const { id, title, category_path, brand, condition, size, notes, measurements, generate_cover, reference_photo_id, cover_photo_id } = await request.json();
 
     if (!id || !title || !category_path || !size || !condition || !cover_photo_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -18,6 +18,9 @@ export async function POST(request: Request) {
         condition,
         size,
         notes: notes || null,
+        measurements: measurements || null,
+        generate_cover: generate_cover || false,
+        reference_photo_id: reference_photo_id || null,
         cover_photo_id
       })
       .eq('id', id)
