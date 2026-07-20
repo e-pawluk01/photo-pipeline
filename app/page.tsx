@@ -1102,7 +1102,7 @@ function CustomDropdown({ items, selectedId, onSelect }: { items: DriveItem[], s
           ) : (
             <>
               {selectedItem.mimeType === 'application/vnd.google-apps.folder' ? (
-                <span>📁</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               ) : selectedItem.thumbnailLink ? (
                 <img src={selectedItem.thumbnailLink} alt="thumb" className="w-5 h-5 object-cover rounded-sm" />
               ) : (
@@ -1139,7 +1139,7 @@ function CustomDropdown({ items, selectedId, onSelect }: { items: DriveItem[], s
                 className={`p-3 text-xs flex items-center space-x-3 transition-colors ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-white/10'} ${selectedId === item.id ? 'bg-white/5' : ''}`}
               >
                 {isFolder ? (
-                  <span>📁</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-60"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                 ) : isImage && item.thumbnailLink ? (
                   <img src={item.thumbnailLink} alt="thumb" className="w-8 h-8 object-cover rounded bg-black/50" />
                 ) : (
