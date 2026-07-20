@@ -1084,7 +1084,76 @@ function PasscodeGate({ onUnlock, verify }: any) {
   );
 }
 
-type DriveItem = { id: string; name: string; mimeType: string };
+type DriveItem = { id: string; name: string; mimeType: string; thumbnailLink?: string };
+
+function CustomDropdown({ items, selectedId, onSelect }: { items: DriveItem[], selectedId: string | null, onSelect: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selectedItem = items.find(i => i.id === selectedId);
+
+  return (
+    <div className="relative w-full">
+      <div 
+        onClick={() => setOpen(!open)}
+        className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white text-xs cursor-pointer flex justify-between items-center hover:border-white/30 transition-colors"
+      >
+        <div className="flex items-center space-x-2 truncate">
+          {!selectedItem ? (
+            <span className="text-white/40">-- Select --</span>
+          ) : (
+            <>
+              {selectedItem.mimeType === 'application/vnd.google-apps.folder' ? (
+                <span>📁</span>
+              ) : selectedItem.thumbnailLink ? (
+                <img src={selectedItem.thumbnailLink} alt="thumb" className="w-5 h-5 object-cover rounded-sm" />
+              ) : (
+                <span>🖼️</span>
+              )}
+              <span className="truncate">{selectedItem.name}</span>
+            </>
+          )}
+        </div>
+        <span className="text-[10px] opacity-50">▼</span>
+      </div>
+
+      {open && (
+        <div className="absolute z-50 top-full left-0 w-full bg-[#111] border border-white/10 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
+          <div 
+            onClick={() => { onSelect(''); setOpen(false); }}
+            className="p-3 text-xs text-white/40 cursor-pointer hover:bg-white/5 border-b border-white/5"
+          >
+            -- Select --
+          </div>
+          {items.map(item => {
+            const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
+            const isImage = item.mimeType.startsWith('image/');
+            const disabled = !isImage && !isFolder;
+            
+            return (
+              <div 
+                key={item.id}
+                onClick={() => {
+                  if (disabled) return;
+                  onSelect(item.id);
+                  setOpen(false);
+                }}
+                className={`p-3 text-xs flex items-center space-x-3 transition-colors ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer hover:bg-white/10'} ${selectedId === item.id ? 'bg-white/5' : ''}`}
+              >
+                {isFolder ? (
+                  <span>📁</span>
+                ) : isImage && item.thumbnailLink ? (
+                  <img src={item.thumbnailLink} alt="thumb" className="w-8 h-8 object-cover rounded bg-black/50" />
+                ) : (
+                  <span>🖼️</span>
+                )}
+                <span className="truncate flex-1">{item.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DriveFolderBrowser({ onFileSelected, selectedFileId }: { onFileSelected: (id: string | null) => void, selectedFileId: string | null }) {
   const [levels, setLevels] = useState<{ items: DriveItem[], selectedId: string | null }[]>([]);
@@ -1140,24 +1209,12 @@ function DriveFolderBrowser({ onFileSelected, selectedFileId }: { onFileSelected
   return (
     <div className="space-y-2 mt-2">
       {levels.map((level, i) => (
-        <select 
-          key={i} 
-          value={level.selectedId || ''} 
-          onChange={(e) => handleSelect(i, e.target.value)}
-          className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none text-xs"
-        >
-          <option value="">-- Select --</option>
-          {level.items.map(item => (
-            <option 
-              key={item.id} 
-              value={item.id}
-              disabled={!item.mimeType.startsWith('image/') && item.mimeType !== 'application/vnd.google-apps.folder'}
-            >
-              {item.mimeType === 'application/vnd.google-apps.folder' ? '📁 ' : '🖼️ '} 
-              {item.name}
-            </option>
-          ))}
-        </select>
+        <CustomDropdown
+          key={i}
+          items={level.items}
+          selectedId={level.selectedId}
+          onSelect={(val) => handleSelect(i, val)}
+        />
       ))}
       {selectedFileId && (
         <div className="text-[10px] text-green-400 font-mono tracking-widest uppercase pt-1">

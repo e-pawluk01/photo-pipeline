@@ -145,7 +145,7 @@ export async function uploadToDrive(
 /**
  * Lists the immediate contents of a Drive folder.
  */
-export async function listFolderContents(folderId: string): Promise<{ id: string; name: string; mimeType: string }[]> {
+export async function listFolderContents(folderId: string): Promise<{ id: string; name: string; mimeType: string; thumbnailLink?: string }[]> {
   const drive = getDriveClient();
   const query = [
     `'${folderId}' in parents`,
@@ -154,7 +154,7 @@ export async function listFolderContents(folderId: string): Promise<{ id: string
   
   const res = await drive.files.list({
     q: query,
-    fields: 'files(id, name, mimeType)',
+    fields: 'files(id, name, mimeType, thumbnailLink)',
     spaces: 'drive',
     orderBy: 'folder, name'
   });
@@ -164,6 +164,7 @@ export async function listFolderContents(folderId: string): Promise<{ id: string
   return res.data.files.map(f => ({
     id: f.id as string,
     name: f.name as string,
-    mimeType: f.mimeType as string
+    mimeType: f.mimeType as string,
+    thumbnailLink: f.thumbnailLink as string | undefined
   }));
 }
