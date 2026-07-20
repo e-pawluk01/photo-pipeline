@@ -807,16 +807,16 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           />
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={generateCover} 
-              onChange={(e) => setGenerateCover(e.target.checked)}
-              className="w-5 h-5 accent-white cursor-pointer"
-            />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">Generate Cover?</span>
-          </label>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors">
+          <div 
+            onClick={() => setGenerateCover(!generateCover)}
+            className="flex items-center justify-between cursor-pointer group"
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 group-hover:text-white/60 transition-colors">Generate Cover?</span>
+            <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${generateCover ? 'bg-white border-white' : 'border-white/20 bg-black/20 group-hover:border-white/40'}`}>
+              {generateCover && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+          </div>
           
           {generateCover && (
             <div className="mt-4 border-t border-white/10 pt-4">
@@ -1001,16 +1001,16 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="Further details..." />
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={generateCover} 
-                onChange={(e) => setGenerateCover(e.target.checked)}
-                className="w-5 h-5 accent-white cursor-pointer"
-              />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">Generate Cover?</span>
-            </label>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors">
+            <div 
+              onClick={() => setGenerateCover(!generateCover)}
+              className="flex items-center justify-between cursor-pointer group"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 group-hover:text-white/60 transition-colors">Generate Cover?</span>
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${generateCover ? 'bg-white border-white' : 'border-white/20 bg-black/20 group-hover:border-white/40'}`}>
+                {generateCover && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+              </div>
+            </div>
             
             {generateCover && (
               <div className="mt-4 border-t border-white/10 pt-4">
