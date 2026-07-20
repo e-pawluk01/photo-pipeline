@@ -1098,7 +1098,7 @@ function CustomDropdown({ items, selectedId, onSelect }: { items: DriveItem[], s
       >
         <div className="flex items-center space-x-2 truncate">
           {!selectedItem ? (
-            <span className="text-white/40">-- Select --</span>
+            <span className="text-white/40">Select...</span>
           ) : (
             <>
               {selectedItem.mimeType === 'application/vnd.google-apps.folder' ? (
@@ -1116,13 +1116,7 @@ function CustomDropdown({ items, selectedId, onSelect }: { items: DriveItem[], s
       </div>
 
       {open && (
-        <div className="absolute z-50 top-full left-0 w-full bg-[#111] border border-white/10 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
-          <div 
-            onClick={() => { onSelect(''); setOpen(false); }}
-            className="p-3 text-xs text-white/40 cursor-pointer hover:bg-white/5 border-b border-white/5"
-          >
-            -- Select --
-          </div>
+        <div className="absolute z-50 top-full mt-1 left-0 w-full bg-[#111] border border-white/10 rounded-lg shadow-2xl max-h-64 overflow-y-auto overflow-x-hidden">
           {items.map(item => {
             const isFolder = item.mimeType === 'application/vnd.google-apps.folder';
             const isImage = item.mimeType.startsWith('image/');
