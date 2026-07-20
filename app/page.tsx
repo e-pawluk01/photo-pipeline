@@ -793,8 +793,8 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Measurements</label>
           <textarea 
             value={measurements} onChange={(e) => setMeasurements(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-white/50 min-h-[80px] resize-none"
-            placeholder="e.g. Pit to pit: 20 inches"
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 outline-none focus:border-white/50 min-h-[80px] resize-none"
+            placeholder="Pit to pit: 20inches..."
           />
         </div>
 
@@ -802,7 +802,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Notes</label>
           <textarea 
             value={notes} onChange={(e) => setNotes(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-white/50 min-h-[80px] resize-none"
+            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 outline-none focus:border-white/50 min-h-[80px] resize-none"
             placeholder="Further details..."
           />
         </div>
@@ -992,12 +992,12 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Measurements</label>
-            <textarea value={measurements} onChange={(e) => setMeasurements(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="e.g. Pit to pit: 20 inches" />
+            <textarea value={measurements} onChange={(e) => setMeasurements(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="Pit to pit: 20inches..." />
           </div>
 
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="Further details..." />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 outline-none min-h-[80px] resize-none focus:border-white/50 transition-colors" placeholder="Further details..." />
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 transition-colors">
