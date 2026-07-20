@@ -820,7 +820,6 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           
           {generateCover && (
             <div className="mt-4 border-t border-white/10 pt-4">
-              <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Reference Photo</label>
               <DriveFolderBrowser onFileSelected={setReferencePhotoId} selectedFileId={referencePhotoId} />
             </div>
           )}
@@ -1014,7 +1013,6 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
             
             {generateCover && (
               <div className="mt-4 border-t border-white/10 pt-4">
-                <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Reference Photo</label>
                 <DriveFolderBrowser onFileSelected={setReferencePhotoId} selectedFileId={referencePhotoId} />
               </div>
             )}
@@ -1163,7 +1161,7 @@ function DriveFolderBrowser({ onFileSelected, selectedFileId }: { onFileSelected
       ))}
       {selectedFileId && (
         <div className="text-[10px] text-green-400 font-mono tracking-widest uppercase pt-1">
-          ✓ Reference Photo Selected
+          ✓ Selected
         </div>
       )}
     </div>
