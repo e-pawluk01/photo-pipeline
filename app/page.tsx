@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
 
 const PASSCODE_KEY = 'photo-pipeline-passcode';
 
@@ -678,6 +679,65 @@ function AppShell() {
 // ----------------------------------------------------------------------------------
 // Group Modal Component (Create Mode)
 // ----------------------------------------------------------------------------------
+function PhotoEditor({ photo, onClose, onSave }: { photo: any, onClose: () => void, onSave: (ts: number) => void }) {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/photo/${photo.id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          crop: croppedAreaPixels,
+          rotation
+        })
+      });
+      if (!res.ok) throw new Error('Failed to save edit');
+      onSave(Date.now());
+    } catch (err) {
+      alert('Error saving image edit');
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] bg-black flex flex-col animate-in fade-in duration-200">
+      <div className="flex-1 relative">
+        <Cropper
+          image={photo.url}
+          crop={crop}
+          zoom={zoom}
+          rotation={rotation}
+          aspect={undefined}
+          onCropChange={setCrop}
+          onRotationChange={setRotation}
+          onCropComplete={onCropComplete}
+          onZoomChange={setZoom}
+        />
+      </div>
+      <div className="p-6 bg-[#111] pb-safe space-y-4">
+        <div className="flex items-center justify-between">
+          <button onClick={() => setRotation(r => r - 90)} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">↺ Rotate Left</button>
+          <button onClick={() => setRotation(r => r + 90)} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">Rotate Right ↻</button>
+        </div>
+        <div className="flex space-x-4 pt-4 border-t border-white/10">
+          <button onClick={onClose} disabled={isSaving} className="flex-1 py-3 rounded-lg border border-white/20 text-white text-xs uppercase tracking-widest">Cancel</button>
+          <button onClick={handleSave} disabled={isSaving} className="flex-1 py-3 rounded-lg bg-white text-black font-bold text-xs uppercase tracking-widest">{isSaving ? 'Saving...' : 'Save Edit'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuccess }: any) {
   const [cat, setCat] = useState('Outerwear');
   const [subcat, setSubcat] = useState('Jackets');
@@ -691,6 +751,8 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [referencePhotoId, setReferencePhotoId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     const subcats = TAXONOMY[cat];
@@ -857,16 +919,42 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
       {expandedImageUrl && (
         <div 
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200"
-          onClick={() => setExpandedImageUrl(null)}
         >
-          <img src={expandedImageUrl} className="max-w-full max-h-full object-contain rounded-lg" />
+          <div className="absolute inset-0" onClick={() => setExpandedImageUrl(null)}></div>
+          <img src={expandedImageUrl} className="max-w-full max-h-full object-contain rounded-lg relative z-10 pointer-events-none" />
           <button 
-            className="absolute top-8 right-8 text-white/60 p-2 text-3xl hover:text-white transition"
+            className="absolute top-8 right-8 text-white/60 p-2 text-3xl hover:text-white transition z-20"
             onClick={() => setExpandedImageUrl(null)}
           >
             ✕
           </button>
+          
+          <button 
+            onClick={() => {
+              const p = photos.find((x: any) => x.url === expandedImageUrl);
+              if (p) setEditingPhoto(p);
+            }}
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-2xl z-20 hover:scale-105 transition-transform"
+          >
+            Edit (Crop/Rotate)
+          </button>
         </div>
+      )}
+
+      {editingPhoto && (
+        <PhotoEditor 
+          photo={editingPhoto}
+          onClose={() => setEditingPhoto(null)}
+          onSave={(ts) => {
+            const p = photos.find((x: any) => x.id === editingPhoto.id);
+            if (p) {
+              p.url = p.url.split('?')[0] + '?t=' + ts;
+              setExpandedImageUrl(p.url);
+            }
+            setEditingPhoto(null);
+            setRefreshTick(t => t + 1); // trigger re-render of thumbnails
+          }}
+        />
       )}
     </div>
   );
