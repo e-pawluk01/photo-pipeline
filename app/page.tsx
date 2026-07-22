@@ -717,7 +717,7 @@ function PhotoEditor({ photo, onClose, onSave }: { photo: any, onClose: () => vo
           crop={crop}
           zoom={zoom}
           rotation={rotation}
-          aspect={undefined}
+          aspect={3 / 4}
           onCropChange={setCrop}
           onRotationChange={setRotation}
           onCropComplete={onCropComplete}
@@ -936,7 +936,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
             }}
             className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest shadow-2xl z-20 hover:scale-105 transition-transform"
           >
-            Edit (Crop/Rotate)
+            Edit
           </button>
         </div>
       )}
