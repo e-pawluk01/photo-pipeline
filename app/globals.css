@@ -29,3 +29,16 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Cropper overrides */
+.cropper-view-box,
+.cropper-face {
+  outline: 1px solid #FFFFFF !important;
+}
+.cropper-line,
+.cropper-point {
+  background-color: #FFFFFF !important;
+}
+.cropper-point.point-se {
+  opacity: 1 !important;
+}
