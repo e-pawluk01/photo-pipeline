@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
 
 const PASSCODE_KEY = 'photo-pipeline-passcode';
 
@@ -680,25 +681,25 @@ function AppShell() {
 // Group Modal Component (Create Mode)
 // ----------------------------------------------------------------------------------
 function PhotoEditor({ photo, onClose, onSave }: { photo: any, onClose: () => void, onSave: (ts: number) => void }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const cropperRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const handleRotateLeft = () => cropperRef.current?.cropper.rotate(-90);
+  const handleRotateRight = () => cropperRef.current?.cropper.rotate(90);
 
   const handleSave = async () => {
+    const cropper = cropperRef.current?.cropper;
+    if (!cropper) return;
+    
     setIsSaving(true);
     try {
+      const data = cropper.getData();
       const res = await fetch(`/api/photo/${photo.id}/edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          crop: croppedAreaPixels,
-          rotation
+          crop: { x: data.x, y: data.y, width: data.width, height: data.height },
+          rotation: data.rotate
         })
       });
       if (!res.ok) throw new Error('Failed to save edit');
@@ -711,23 +712,24 @@ function PhotoEditor({ photo, onClose, onSave }: { photo: any, onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-[300] bg-black flex flex-col animate-in fade-in duration-200">
-      <div className="flex-1 relative">
+      <div className="flex-1 relative flex items-center justify-center p-4">
         <Cropper
-          image={photo.url}
-          crop={crop}
-          zoom={zoom}
-          rotation={rotation}
-          aspect={3 / 4}
-          onCropChange={setCrop}
-          onRotationChange={setRotation}
-          onCropComplete={onCropComplete}
-          onZoomChange={setZoom}
+          src={photo.url}
+          style={{ height: '100%', width: '100%' }}
+          initialAspectRatio={3 / 4}
+          guides={true}
+          ref={cropperRef}
+          viewMode={1}
+          dragMode="crop"
+          autoCropArea={0.8}
+          background={false}
+          rotatable={true}
         />
       </div>
       <div className="p-6 bg-[#111] pb-safe space-y-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setRotation(r => r - 90)} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">↺ Rotate Left</button>
-          <button onClick={() => setRotation(r => r + 90)} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">Rotate Right ↻</button>
+          <button onClick={handleRotateLeft} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">↺ Rotate Left</button>
+          <button onClick={handleRotateRight} className="text-white/60 hover:text-white text-xs uppercase tracking-widest p-2">Rotate Right ↻</button>
         </div>
         <div className="flex space-x-4 pt-4 border-t border-white/10">
           <button onClick={onClose} disabled={isSaving} className="flex-1 py-3 rounded-lg border border-white/20 text-white text-xs uppercase tracking-widest">Cancel</button>
