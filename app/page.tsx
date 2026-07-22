@@ -726,17 +726,17 @@ function PhotoEditor({ photo, onClose, onSave }: { photo: any, onClose: () => vo
           rotatable={true}
         />
       </div>
-      <div className="px-6 py-4 bg-[#111] pb-safe space-y-3">
-        <div className="flex items-center justify-center space-x-6">
-          <button onClick={handleRotateLeft} className="flex items-center justify-center w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full transition-colors" title="Rotate Left">
+      <div className="absolute bottom-0 inset-x-0 px-6 py-6 pb-safe space-y-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10 pointer-events-none">
+        <div className="pointer-events-auto flex items-center justify-center space-x-6">
+          <button onClick={handleRotateLeft} className="flex items-center justify-center w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-colors" title="Rotate Left">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           </button>
-          <button onClick={handleRotateRight} className="flex items-center justify-center w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full transition-colors" title="Rotate Right">
+          <button onClick={handleRotateRight} className="flex items-center justify-center w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-colors" title="Rotate Right">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
           </button>
         </div>
-        <div className="flex space-x-3 pt-3 border-t border-white/10">
-          <button onClick={onClose} disabled={isSaving} className="flex-1 py-3 rounded-full border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white/5 transition-colors">Cancel</button>
+        <div className="pointer-events-auto flex space-x-3 pt-3">
+          <button onClick={onClose} disabled={isSaving} className="flex-1 py-3 rounded-full border border-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Cancel</button>
           <button onClick={handleSave} disabled={isSaving} className="flex-1 py-3 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-widest hover:bg-white/90 transition-colors">{isSaving ? 'Saving...' : 'Save Edit'}</button>
         </div>
       </div>
