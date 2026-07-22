@@ -155,7 +155,9 @@ Notes: ${notesStr}`;
 ★ We have a dog and a bunny! While we do our absolute best to ensure every item is cleaned before shipping, we can't guarantee they are 100% free of stray hairs. Please keep this in mind if you have severe allergies!
 ★ Shop Policies: For more information on returns, shipping, and other details, please check out the 'about' section on our profile.
 
-˚₊‧꒰ა ☆ ໒꒱ ‧₊˚ Tags: [Add tags here]`;
+˚₊‧꒰ა ☆ ໒꒱ ‧₊˚ Tags: [Add tags here]
+
+★ Category: ${group.category_path}`;
 
     const descriptionBuffer = Buffer.from(descriptionText, 'utf-8');
     await uploadToDrive(folderId, 'description.txt', descriptionBuffer, 'text/plain');

@@ -21,7 +21,7 @@ const TAXONOMY: Record<string, string[]> = {
   "Accessories": ["Belts", "Hats & caps", "Jewelry", "Other accessories"]
 };
 
-const CLOTHING_SIZES = ['XS (UK 4-6)', 'S (UK 8-10)', 'M (UK 12-14)', 'L (UK 16-18)', 'XL (UK 20-22)', 'One Size'];
+const CLOTHING_SIZES = ['XXS / UK 2', 'XS / UK 4-6', 'S / UK 8-10', 'M / UK 12-14', 'L / UK 16-18', 'One Size'];
 const SHOE_SIZES = ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'];
 const ONE_SIZE = ['One Size'];
 
@@ -690,6 +690,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [generateCover, setGenerateCover] = useState(false);
   const [referencePhotoId, setReferencePhotoId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const subcats = TAXONOMY[cat];
@@ -835,7 +836,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
               if (!p) return null;
               return (
                 <div key={id as string} className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
-                  <img src={p.url} className="object-cover w-full h-full" />
+                  <img src={p.url} className="object-cover w-full h-full cursor-pointer" onClick={() => setExpandedImageUrl(p.url)} />
                   <button onClick={() => onDeselect(id)} className="absolute top-1 right-1 bg-black/80 rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
                 </div>
               );
@@ -852,6 +853,21 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           {isSaving ? 'Saving...' : 'Create'}
         </button>
       </div>
+
+      {expandedImageUrl && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200"
+          onClick={() => setExpandedImageUrl(null)}
+        >
+          <img src={expandedImageUrl} className="max-w-full max-h-full object-contain rounded-lg" />
+          <button 
+            className="absolute top-8 right-8 text-white/60 p-2 text-3xl hover:text-white transition"
+            onClick={() => setExpandedImageUrl(null)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }
