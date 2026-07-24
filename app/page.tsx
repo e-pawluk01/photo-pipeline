@@ -455,8 +455,8 @@ function AppShell() {
                          {count}
                        </div>
                        {g.bought_for_price && (
-                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
-                           ${g.bought_for_price}
+                         <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white border border-white/30">
+                           £{g.bought_for_price}
                          </div>
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
@@ -486,8 +486,8 @@ function AppShell() {
                      >
                        <img src={p.url} alt="Uploaded" className={`object-cover w-full h-full transition-opacity ${isSelectionMode && !isSelected ? 'opacity-40' : 'opacity-100'}`} loading="lazy" />
                        {p.bought_for_price && (
-                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
-                           ${p.bought_for_price}
+                         <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white border border-white/30">
+                           £{p.bought_for_price}
                          </div>
                        )}
                        {isSelectionMode && (
@@ -528,8 +528,8 @@ function AppShell() {
                          {count}
                        </div>
                        {g.bought_for_price && (
-                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
-                           ${g.bought_for_price}
+                         <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white border border-white/30">
+                           £{g.bought_for_price}
                          </div>
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
@@ -610,7 +610,7 @@ function AppShell() {
               inputMode="decimal"
               autoFocus
               className="bg-white/10 border border-white/20 rounded-2xl h-16 text-center text-3xl font-light text-white outline-none focus:border-white/50 transition placeholder:text-white/20"
-              placeholder="0.00"
+              placeholder="£0.00"
               value={pendingPrice}
               onChange={e => setPendingPrice(e.target.value)}
             />
