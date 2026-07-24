@@ -123,11 +123,10 @@ function AppShell() {
   const [isCleaningUp, setIsCleaningUp] = useState(false);
 
   useEffect(() => {
-    let sid = localStorage.getItem('photo-pipeline-session');
-    if (!sid) {
-      sid = `batch_${Date.now()}`;
-      localStorage.setItem('photo-pipeline-session', sid);
-    }
+    // Hardcoding to a shared workspace so desktop and iPhone sync instantly.
+    // This overwrites any previous local 'batch_xyz' so they connect to the same DB rows.
+    const sid = 'shared_workspace_sync';
+    localStorage.setItem('photo-pipeline-session', sid);
     setSessionId(sid);
   }, []);
 
