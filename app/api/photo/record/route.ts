@@ -3,7 +3,7 @@ import { supabaseServer } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
-    const { storagePath, sessionId } = await request.json();
+    const { storagePath, sessionId, boughtForPrice } = await request.json();
 
     if (!storagePath || !sessionId) {
       return NextResponse.json({ error: 'storagePath and sessionId are required' }, { status: 400 });
@@ -15,6 +15,7 @@ export async function POST(request: Request) {
         {
           storage_path: storagePath,
           session_id: sessionId,
+          bought_for_price: boughtForPrice || null,
         }
       ])
       .select()

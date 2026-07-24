@@ -77,7 +77,7 @@ export default function Page() {
   return <AppShell />;
 }
 
-type Photo = { id: string; url: string; group_id: string | null };
+type Photo = { id: string; url: string; group_id: string | null; bought_for_price?: string | null };
 type Group = { 
   id: string; 
   title: string; 
@@ -94,6 +94,7 @@ type Group = {
   measurements: string | null;
   generate_cover: boolean;
   reference_photo_id: string | null;
+  bought_for_price?: string | null;
 };
 
 function AppShell() {
@@ -105,6 +106,9 @@ function AppShell() {
   const [progress, setProgress] = useState(0); 
   const [uploadStats, setUploadStats] = useState<{ success: number; total: number } | null>(null);
   
+  const [pendingPriceFile, setPendingPriceFile] = useState<File | null>(null);
+  const [pendingPrice, setPendingPrice] = useState<string>('');
+
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [progressGroups, setProgressGroups] = useState<Group[]>([]);
@@ -182,10 +186,8 @@ function AppShell() {
     }
   }, [activeTab, sessionId]);
 
-  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!sessionId) return;
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const processFiles = async (files: FileList | File[], boughtForPrice: string | null = null) => {
+    if (!sessionId || files.length === 0) return;
     
     setUploading(true);
     setProgress(0);
@@ -232,7 +234,7 @@ function AppShell() {
         const recordRes = await fetch('/api/photo/record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ storagePath, sessionId }),
+          body: JSON.stringify({ storagePath, sessionId, boughtForPrice }),
         });
         const recordData = await recordRes.json();
         if (!recordRes.ok) throw new Error(recordData.error);
@@ -240,7 +242,8 @@ function AppShell() {
         newPhotos.push({
           id: recordData.record.id,
           url: recordData.publicUrl,
-          group_id: null
+          group_id: null,
+          bought_for_price: boughtForPrice
         });
         
         successCount++;
@@ -257,6 +260,21 @@ function AppShell() {
     setUploading(false);
     
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Check if it's a single fresh camera upload (created within last 60 seconds)
+    if (files.length === 1 && (Date.now() - files[0].lastModified < 60000)) {
+      setPendingPriceFile(files[0]);
+      setPendingPrice('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    await processFiles(files);
   };
 
   async function handleAssignPhotosToGroup() {
@@ -436,6 +454,11 @@ function AppShell() {
                        <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white border border-white/30">
                          {count}
                        </div>
+                       {g.bought_for_price && (
+                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
+                           ${g.bought_for_price}
+                         </div>
+                       )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
                          <p className="text-[9px] text-white/70 truncate">{g.size}</p>
@@ -462,6 +485,11 @@ function AppShell() {
                        }}
                      >
                        <img src={p.url} alt="Uploaded" className={`object-cover w-full h-full transition-opacity ${isSelectionMode && !isSelected ? 'opacity-40' : 'opacity-100'}`} loading="lazy" />
+                       {p.bought_for_price && (
+                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
+                           ${p.bought_for_price}
+                         </div>
+                       )}
                        {isSelectionMode && (
                          <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 transition-colors ${isSelected ? 'bg-white border-white' : 'border-white/40 bg-black/20'}`}>
                            {isSelected && <span className="absolute inset-0 flex items-center justify-center text-black text-xs">✓</span>}
@@ -499,6 +527,11 @@ function AppShell() {
                        <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-mono text-white border border-white/30">
                          {count}
                        </div>
+                       {g.bought_for_price && (
+                         <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] text-green-400 font-mono border border-green-400/30">
+                           ${g.bought_for_price}
+                         </div>
+                       )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
                          <p className="text-[9px] text-white/70 truncate">{g.size}</p>
@@ -564,6 +597,46 @@ function AppShell() {
           </div>
         )}
       </div>
+
+      {pendingPriceFile && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 px-6 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm flex flex-col space-y-6">
+            <h2 className="text-2xl font-light text-center text-white tracking-widest uppercase">Item Price</h2>
+            <p className="text-white/50 text-center text-sm font-light">
+              You just took a photo! Enter the price tag amount.
+            </p>
+            <input 
+              type="text" 
+              inputMode="decimal"
+              autoFocus
+              className="bg-white/10 border border-white/20 rounded-2xl h-16 text-center text-3xl font-light text-white outline-none focus:border-white/50 transition placeholder:text-white/20"
+              placeholder="0.00"
+              value={pendingPrice}
+              onChange={e => setPendingPrice(e.target.value)}
+            />
+            <div className="flex gap-4 pt-4">
+              <button 
+                onClick={() => {
+                  processFiles([pendingPriceFile], null);
+                  setPendingPriceFile(null);
+                }}
+                className="flex-1 h-14 rounded-full border border-white/20 font-medium tracking-widest uppercase text-white hover:bg-white/10 transition active:scale-95"
+              >
+                Skip
+              </button>
+              <button 
+                onClick={() => {
+                  processFiles([pendingPriceFile], pendingPrice);
+                  setPendingPriceFile(null);
+                }}
+                className="flex-1 h-14 rounded-full bg-white text-black font-medium tracking-widest uppercase hover:bg-white/90 transition active:scale-95"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFiles} />
 
@@ -778,6 +851,10 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
       const categoryPath = `Woman/${cat}/${subcat}`;
       const finalTitle = title.trim() || subcat;
 
+      const groupPhotos = idsArray.map(id => photos.find((p: Photo) => p.id === id));
+      const pricePhoto = groupPhotos.find(p => p?.bought_for_price);
+      const bought_for_price = pricePhoto ? pricePhoto.bought_for_price : null;
+
       const res = await fetch('/api/group/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -793,7 +870,8 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           reference_photo_id: referencePhotoId,
           photoIds: idsArray,
           cover_photo_id: idsArray[0],
-          session_id: sessionId
+          session_id: sessionId,
+          bought_for_price
         })
       });
       const data = await res.json();

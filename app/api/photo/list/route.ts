@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // Fetch photos for session
     const { data: photosData, error: photosError } = await supabaseServer
       .from('photos')
-      .select('id, storage_path, group_id')
+      .select('id, storage_path, group_id, bought_for_price')
       .eq('session_id', sessionId)
       .order('upload_timestamp', { ascending: false });
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     // Fetch groups for session
     let query = supabaseServer
       .from('groups')
-      .select('id, title, category_path, brand, condition, size, notes, cover_photo_id, created_at, status, error_message, drive_folder_link')
+      .select('id, title, category_path, brand, condition, size, notes, cover_photo_id, created_at, status, error_message, drive_folder_link, bought_for_price')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: false });
       
@@ -51,6 +51,7 @@ export async function GET(request: Request) {
     const photos = photosData.map((record) => ({
       id: record.id,
       group_id: record.group_id,
+      bought_for_price: record.bought_for_price,
       url: `${process.env.SUPABASE_URL}/storage/v1/object/public/photo-imports/${record.storage_path}`
     }));
 
