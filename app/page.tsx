@@ -125,8 +125,6 @@ function AppShell() {
   const [addingToGroupId, setAddingToGroupId] = useState<string | null>(null);
 
   // Send State
-  const [showCleanupModal, setShowCleanupModal] = useState(false);
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
 
   useEffect(() => {
     // Hardcoding to a shared workspace so desktop and iPhone sync instantly.
@@ -363,30 +361,11 @@ function AppShell() {
     refetchMainData();
   }
 
-  async function handleCleanup() {
+  async function handleSendGroups() {
     if (!sessionId) return;
-    setIsCleaningUp(true);
-    try {
-      const res = await fetch('/api/session/cleanup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      });
-      if (res.ok) {
-        setPhotos(prev => prev.filter(p => p.group_id !== null));
-        setShowCleanupModal(false);
-        setActiveTab('progress');
-        // Begin the processing loop
-        const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed' || g.status === 'cleanup_failed');
-        startProcessing(groupsToProcess);
-      } else {
-        throw new Error('Cleanup failed');
-      }
-    } catch (err) {
-      alert('Failed to cleanup ungrouped photos');
-    } finally {
-      setIsCleaningUp(false);
-    }
+    setActiveTab('progress');
+    const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed' || g.status === 'cleanup_failed');
+    startProcessing(groupsToProcess);
   }
 
   const loosePhotos = photos.filter(p => !p.group_id);
@@ -704,16 +683,15 @@ function AppShell() {
           </button>
         )}
 
-        <button 
-          onClick={() => {
-            if (loosePhotos.length > 0) setShowCleanupModal(true);
-            else handleCleanup();
-          }}
-          disabled={groups.length === 0 || uploading || isSelectionMode}
-          className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white disabled:opacity-30 disabled:active:scale-100"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
+        {activeTab === 'groups' && !uploading && !isSelectionMode && (
+          <button 
+            onClick={handleSendGroups}
+            disabled={groups.length === 0}
+            className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white disabled:opacity-30 disabled:active:scale-100"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        )}
       </footer>
 
       {/* Floating Action Bar for Selection Mode */}
@@ -739,23 +717,6 @@ function AppShell() {
       )}
 
       {/* Cleanup Confirmation Modal */}
-      {showCleanupModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#111111]/70 backdrop-blur-sm p-6">
-          <div className="bg-[#1a1a1a] border border-white/10 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-             <h2 className="text-xl font-medium mb-4">Ready to Send?</h2>
-             <p className="text-white/60 text-sm mb-8">
-               {loosePhotos.length} photos aren't in a group and will be completely deleted from the database. Continue?
-             </p>
-             <div className="flex space-x-4">
-               <button onClick={() => setShowCleanupModal(false)} className="flex-1 bg-white/5 py-3 rounded-full text-sm font-medium border border-white/10 hover:bg-white/10 transition">Cancel</button>
-               <button onClick={handleCleanup} disabled={isCleaningUp} className="flex-1 bg-white text-black py-3 rounded-full text-sm font-bold tracking-wide hover:bg-white/90 disabled:opacity-50 transition">
-                 {isCleaningUp ? 'Processing...' : 'Confirm'}
-               </button>
-             </div>
-          </div>
-        </div>
-      )}
-
       {/* Group Creation Modal */}
       {showGroupModal && sessionId && (
         <GroupModal 
