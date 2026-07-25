@@ -487,10 +487,7 @@ function AppShell() {
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
-                         <div className="flex justify-between items-center mt-1">
-                           <p className="text-[9px] text-white/70 truncate">{g.size}</p>
-                           {g.sku && <p className="text-[9px] font-mono font-bold text-white/90 bg-white/20 px-1 rounded">{g.sku}</p>}
-                         </div>
+                         <p className="text-[9px] text-white/70 truncate">{g.size}</p>
                        </div>
                      </div>
                    );
@@ -571,10 +568,7 @@ function AppShell() {
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
-                         <div className="flex justify-between items-center mt-1">
-                           <p className="text-[9px] text-white/70 truncate">{g.size}</p>
-                           {g.sku && <p className="text-[9px] font-mono font-bold text-white/90 bg-white/20 px-1 rounded">{g.sku}</p>}
-                         </div>
+                         <p className="text-[9px] text-white/70 truncate">{g.size}</p>
                        </div>
                      </div>
                    );

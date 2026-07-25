@@ -7,7 +7,7 @@ function getGoogleSheetsClient() {
   );
   
   oauth2Client.setCredentials({
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+    refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN
   });
 
   return google.sheets({ version: 'v4', auth: oauth2Client });
@@ -15,8 +15,8 @@ function getGoogleSheetsClient() {
 
 export async function appendToGoogleSheet(groupData: any) {
   // Check if we have the necessary environment variables
-  if (!process.env.GOOGLE_REFRESH_TOKEN || !process.env.GOOGLE_SHEET_ID) {
-    console.warn('Google Sheets integration is not configured. Missing GOOGLE_REFRESH_TOKEN or GOOGLE_SHEET_ID.');
+  if (!process.env.GOOGLE_OAUTH_REFRESH_TOKEN || !process.env.GOOGLE_SHEET_ID) {
+    console.warn('Google Sheets integration is not configured. Missing GOOGLE_OAUTH_REFRESH_TOKEN or GOOGLE_SHEET_ID.');
     return;
   }
 
