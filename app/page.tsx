@@ -370,7 +370,6 @@ function AppShell() {
 
   async function handleSendGroups() {
     if (!sessionId) return;
-    setActiveTab('progress');
     const groupsToProcess = groups.filter(g => g.status === 'pending' || g.status === 'failed' || g.status === 'cleanup_failed');
     startProcessing(groupsToProcess);
   }
@@ -852,6 +851,10 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [editingPhoto, setEditingPhoto] = useState<any | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
+  const initialPricePhoto = Array.from(selectedIds).map((id: any) => photos.find((p: any) => p.id === id)).find((p: any) => p?.bought_for_price);
+  const [boughtForPrice, setBoughtForPrice] = useState(initialPricePhoto ? initialPricePhoto.bought_for_price : '');
+  const hasPriceFromPhoto = !!initialPricePhoto;
+
   useEffect(() => {
     const subcats = TAXONOMY[cat];
     if (!subcats.includes(subcat)) {
@@ -871,10 +874,6 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
       const categoryPath = `Woman/${cat}/${subcat}`;
       const finalTitle = title.trim() || subcat;
 
-      const groupPhotos = idsArray.map(id => photos.find((p: Photo) => p.id === id));
-      const pricePhoto = groupPhotos.find(p => p?.bought_for_price);
-      const bought_for_price = pricePhoto ? pricePhoto.bought_for_price : null;
-
       const res = await fetch('/api/group/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -891,7 +890,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           photoIds: idsArray,
           cover_photo_id: idsArray[0],
           session_id: sessionId,
-          bought_for_price,
+          bought_for_price: boughtForPrice ? parseFloat(boughtForPrice as string) : null,
           sourced
         })
       });
@@ -930,13 +929,25 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
             />
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Sourced From</label>
             <input 
               value={sourced} onChange={(e) => setSourced(e.target.value)}
-              placeholder="e.g. Thrift Store, Vinted"
+              placeholder="e.g. Thrift Store"
               className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-white/50 text-white placeholder:text-white/20"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Bought For (£)</label>
+            <input 
+              type="number"
+              step="0.01"
+              value={boughtForPrice} 
+              onChange={(e) => setBoughtForPrice(e.target.value)}
+              disabled={hasPriceFromPhoto}
+              placeholder="e.g. 12.50"
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-white/50 text-white placeholder:text-white/20 disabled:opacity-50"
             />
           </div>
         </div>
