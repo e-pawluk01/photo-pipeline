@@ -125,6 +125,7 @@ function AppShell() {
   const [addingToGroupId, setAddingToGroupId] = useState<string | null>(null);
 
   // Send State
+  const [sendResult, setSendResult] = useState<{count: number} | null>(null);
 
   useEffect(() => {
     // Hardcoding to a shared workspace so desktop and iPhone sync instantly.
@@ -323,8 +324,12 @@ function AppShell() {
   }
 
   async function startProcessing(groupsToProcess: Group[]) {
+    let successCount = 0;
     for (const g of groupsToProcess) {
-      if (g.status === 'done') continue;
+      if (g.status === 'done') {
+        successCount++;
+        continue;
+      }
       // Optimistic update
       setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
       setGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'filing' } : x));
@@ -332,6 +337,7 @@ function AppShell() {
         const res = await fetch(`/api/group/${g.id}/process`, { method: 'POST' });
         const data = await res.json();
         if (res.ok) {
+          successCount++;
           setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'done', drive_folder_link: data.folderLink } : x));
         } else {
           setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: data.error } : x));
@@ -342,6 +348,7 @@ function AppShell() {
     }
     // Refresh main view after processing all
     refetchMainData();
+    setSendResult({ count: successCount });
   }
 
   async function retryCleanup(g: Group) {
@@ -695,6 +702,23 @@ function AppShell() {
       </footer>
 
       {/* Floating Action Bar for Selection Mode */}
+      {sendResult && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#111111]/70 backdrop-blur-sm p-6">
+          <div className="bg-[#1a1a1a] border border-white/10 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+             <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+             </div>
+             <h2 className="text-xl font-medium mb-2">Sending Complete</h2>
+             <p className="text-white/60 text-sm mb-8">
+               Sent {sendResult.count} group{sendResult.count !== 1 ? 's' : ''} successfully!
+             </p>
+             <button onClick={() => setSendResult(null)} className="w-full bg-white text-black py-3 rounded-full text-sm font-bold tracking-wide hover:bg-white/90 transition">
+               Awesome
+             </button>
+          </div>
+        </div>
+      )}
+
       {isSelectionMode && (
         <div className="fixed bottom-[110px] left-6 right-6 z-50 flex items-center justify-between bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-4 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.8)]">
           <span className="text-xs font-medium tracking-widest uppercase">
