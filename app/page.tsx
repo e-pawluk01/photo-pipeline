@@ -95,6 +95,8 @@ type Group = {
   generate_cover: boolean;
   reference_photo_id: string | null;
   bought_for_price?: string | null;
+  sku?: string | null;
+  sourced?: string | null;
 };
 
 function AppShell() {
@@ -485,7 +487,10 @@ function AppShell() {
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
-                         <p className="text-[9px] text-white/70 truncate">{g.size}</p>
+                         <div className="flex justify-between items-center mt-1">
+                           <p className="text-[9px] text-white/70 truncate">{g.size}</p>
+                           {g.sku && <p className="text-[9px] font-mono font-bold text-white/90 bg-white/20 px-1 rounded">{g.sku}</p>}
+                         </div>
                        </div>
                      </div>
                    );
@@ -566,7 +571,10 @@ function AppShell() {
                        )}
                        <div className="absolute bottom-2 left-2 right-2">
                          <p className="text-[10px] font-semibold uppercase tracking-wider truncate text-white leading-tight">{g.title}</p>
-                         <p className="text-[9px] text-white/70 truncate">{g.size}</p>
+                         <div className="flex justify-between items-center mt-1">
+                           <p className="text-[9px] text-white/70 truncate">{g.size}</p>
+                           {g.sku && <p className="text-[9px] font-mono font-bold text-white/90 bg-white/20 px-1 rounded">{g.sku}</p>}
+                         </div>
                        </div>
                      </div>
                    );
@@ -853,6 +861,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [subcat, setSubcat] = useState('Jackets');
   const [title, setTitle] = useState('');
   const [brand, setBrand] = useState('');
+  const [sourced, setSourced] = useState('');
   const [size, setSize] = useState(CLOTHING_SIZES[2]);
   const [condition, setCondition] = useState('Very good');
   const [notes, setNotes] = useState('');
@@ -903,7 +912,8 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           photoIds: idsArray,
           cover_photo_id: idsArray[0],
           session_id: sessionId,
-          bought_for_price
+          bought_for_price,
+          sourced
         })
       });
       const data = await res.json();
@@ -937,6 +947,16 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
             <input 
               value={brand} onChange={(e) => setBrand(e.target.value)}
               placeholder="e.g. Zara"
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-white/50 text-white placeholder:text-white/20"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Sourced From</label>
+            <input 
+              value={sourced} onChange={(e) => setSourced(e.target.value)}
+              placeholder="e.g. Thrift Store, Vinted"
               className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-white/50 text-white placeholder:text-white/20"
             />
           </div>
@@ -1083,6 +1103,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   
   const [title, setTitle] = useState(group.title);
   const [brand, setBrand] = useState(group.brand || '');
+  const [sourced, setSourced] = useState(group.sourced || '');
   
   const parts = group.category_path.split('/');
   // parts[0] is "Woman", parts[1] is Category, parts[2] is Subcategory
@@ -1121,6 +1142,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
         measurements,
         generate_cover: generateCover,
         reference_photo_id: referencePhotoId,
+        sourced,
       };
       const res = await fetch('/api/group/edit', {
         method: 'POST',
@@ -1181,6 +1203,13 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Brand</label>
               <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Sourced From</label>
+              <input value={sourced} onChange={(e) => setSourced(e.target.value)} placeholder="e.g. Thrift Store, Vinted" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
             </div>
           </div>
 
