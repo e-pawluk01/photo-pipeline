@@ -10,16 +10,24 @@ export async function GET() {
   const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const res = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-image',
-      contents: 'Generate a picture of a banana'
+    const res = await ai.models.generateImages({
+      model: 'imagen-3.0-generate-002',
+      prompt: 'A test image of a banana',
+      config: {
+        numberOfImages: 1,
+        outputMimeType: 'image/jpeg',
+      }
     });
 
-    return NextResponse.json({ 
-      status: "SUCCESS", 
-      message: "Successfully hit the gemini-3.1-flash-lite-image model!",
-      response: res
-    });
+    if (res.generatedImages && res.generatedImages.length > 0) {
+      return NextResponse.json({ 
+        status: "SUCCESS", 
+        message: "Image successfully generated on the Free Tier using Imagen 3!",
+        base64Length: res.generatedImages[0].image?.imageBytes?.length || 0 
+      });
+    } else {
+      return NextResponse.json({ status: "SUCCESS_BUT_NO_IMAGE", response: res });
+    }
   } catch (e: any) {
     return NextResponse.json({ 
       status: "ERROR", 
