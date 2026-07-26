@@ -10,24 +10,19 @@ export async function GET() {
   const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const res = await ai.models.generateImages({
-      model: 'imagen-3.0-generate-002',
-      prompt: 'A test image of a banana',
-      config: {
-        numberOfImages: 1,
-        outputMimeType: 'image/jpeg',
-      }
-    });
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    const data = await response.json();
 
-    if (res.generatedImages && res.generatedImages.length > 0) {
-      return NextResponse.json({ 
-        status: "SUCCESS", 
-        message: "Image successfully generated on the Free Tier using Imagen 3!",
-        base64Length: res.generatedImages[0].image?.imageBytes?.length || 0 
-      });
-    } else {
-      return NextResponse.json({ status: "SUCCESS_BUT_NO_IMAGE", response: res });
-    }
+    return NextResponse.json({ 
+      status: "SUCCESS", 
+      message: "Here are the available models",
+      models: data.models?.map((m: any) => ({
+        name: m.name,
+        version: m.version,
+        displayName: m.displayName,
+        supportedGenerationMethods: m.supportedGenerationMethods
+      })) || data
+    });
   } catch (e: any) {
     return NextResponse.json({ 
       status: "ERROR", 
