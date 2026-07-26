@@ -10,18 +10,15 @@ export async function GET() {
   const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    const data = await response.json();
+    const res = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: 'Generate a picture of a banana'
+    });
 
     return NextResponse.json({ 
       status: "SUCCESS", 
-      message: "Here are the available models",
-      models: data.models?.map((m: any) => ({
-        name: m.name,
-        version: m.version,
-        displayName: m.displayName,
-        supportedGenerationMethods: m.supportedGenerationMethods
-      })) || data
+      message: "Successfully hit the gemini-2.5-flash-image model (Nano Banana 1)!",
+      response: res
     });
   } catch (e: any) {
     return NextResponse.json({ 
