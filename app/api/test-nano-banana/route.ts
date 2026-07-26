@@ -11,7 +11,7 @@ export async function GET() {
 
   try {
     const res = await ai.models.generateImages({
-      model: 'nano-banana',
+      model: 'imagen-3.0-generate-002',
       prompt: 'A test image of a banana',
       config: {
         numberOfImages: 1,
