@@ -23,7 +23,7 @@ export async function GET() {
       return NextResponse.json({ 
         status: "SUCCESS", 
         message: "Image successfully generated!",
-        base64Length: res.generatedImages[0].image.imageBytes.length 
+        base64Length: res.generatedImages[0].image?.imageBytes?.length || 0
       });
     } else {
       return NextResponse.json({ status: "SUCCESS_BUT_NO_IMAGE", response: res });
