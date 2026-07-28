@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ensureFolder, uploadToDrive, downloadFile } from '@/lib/drive';
 import { removeWatermark } from '@/lib/watermark';
-import { GoogleGenAI } from '@google/genai';
 
 export const maxDuration = 300; // 5 mins max duration for processing a group if supported by plan
 
@@ -111,21 +110,41 @@ Brand: ${brandStr}
 Notes: ${notesStr}`;
 
         try {
-          console.log(`[Gemini] Attempting Gemini call for group ${groupId} with model gemini-3.1-flash-lite. photo.id=${photo.id}, cover_id=${group.cover_photo_id}`);
-          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-          aiTitlePromise = ai.models.generateContent({
-            model: 'gemini-3.1-flash-lite',
-            contents: [
-              promptText,
-              { inlineData: { data: buffer.toString('base64'), mimeType } }
-            ]
-          }).then(res => res.text ? res.text.trim() : (group.title || 'Untitled'))
-            .catch(err => {
-              console.error('Gemini error:', err);
+          console.log(`[Gemini] Attempting OpenRouter text call for group ${groupId} with model google/gemini-2.5-flash.`);
+          
+          aiTitlePromise = fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    { type: "text", text: promptText },
+                    { type: "image_url", image_url: { url: `data:${mimeType};base64,${buffer.toString('base64')}` } }
+                  ]
+                }
+              ]
+            })
+          }).then(async res => {
+            if (!res.ok) {
+              const errTxt = await res.text();
+              console.error('OpenRouter text error:', errTxt);
               return group.title || 'Untitled';
-            });
+            }
+            const data = await res.json();
+            const textContent = data.choices?.[0]?.message?.content;
+            return textContent ? textContent.trim() : (group.title || 'Untitled');
+          }).catch(err => {
+            console.error('OpenRouter fetch error:', err);
+            return group.title || 'Untitled';
+          });
         } catch (initErr) {
-          console.error('Failed to init Gemini:', initErr);
+          console.error('Failed to init OpenRouter text call:', initErr);
           aiTitlePromise = Promise.resolve(group.title || 'Untitled');
         }
       }
@@ -244,6 +263,10 @@ The final output image MUST be exactly 3024x4032 pixels.`;
 
         const generatedContent = orData.choices[0].message.content;
         
+        if (!generatedContent) {
+           throw new Error(`OpenRouter returned empty content. This usually means the model refused the prompt or hit an internal error. Full response: ${JSON.stringify(orData)}`);
+        }
+
         let genBase64 = "";
         const match = generatedContent.match(/data:image\/[^;]+;base64,([^\)]+)/);
         if (match && match[1]) {
