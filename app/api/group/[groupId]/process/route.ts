@@ -262,13 +262,22 @@ The final output image MUST be exactly 3024x4032 pixels.`;
           throw new Error(`OpenRouter Error: ${JSON.stringify(orData)}`);
         }
 
-        const generatedContent = orData.choices[0].message.content;
-        
-        if (!generatedContent) {
-           throw new Error(`OpenRouter returned empty content. This usually means the model refused the prompt or hit an internal error. Full response: ${JSON.stringify(orData)}`);
+        const messageObj = orData.choices[0].message;
+        let generatedContent = messageObj.content || "";
+        let genBase64 = "";
+
+        // OpenRouter returns generated images in the `images` array for chat/completions
+        if (messageObj.images && messageObj.images.length > 0) {
+          const urlObj = messageObj.images[0].image_url?.url || messageObj.images[0].url || "";
+          if (urlObj) {
+            generatedContent = urlObj; 
+          }
         }
 
-        let genBase64 = "";
+        if (!generatedContent) {
+           throw new Error(`OpenRouter returned empty content/images. This usually means the model refused the prompt or hit an internal error. Full response: ${JSON.stringify(orData)}`);
+        }
+
         const match = generatedContent.match(/data:image\/[^;]+;base64,([^\)]+)/);
         if (match && match[1]) {
           genBase64 = match[1];
