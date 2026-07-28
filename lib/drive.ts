@@ -168,3 +168,15 @@ export async function listFolderContents(folderId: string): Promise<{ id: string
     thumbnailLink: f.thumbnailLink as string | undefined
   }));
 }
+/**
+ * Downloads a file from Google Drive and returns it as a Buffer.
+ */
+export async function downloadFile(fileId: string): Promise<Buffer> {
+  const drive = getDriveClient();
+  const res = await drive.files.get({
+    fileId: fileId,
+    alt: 'media'
+  }, { responseType: 'arraybuffer' });
+  
+  return Buffer.from(res.data as ArrayBuffer);
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ensureFolder, uploadToDrive } from '@/lib/drive';
+import { ensureFolder, uploadToDrive, downloadFile } from '@/lib/drive';
 import { GoogleGenAI } from '@google/genai';
 
 export const maxDuration = 300; // 5 mins max duration for processing a group if supported by plan
@@ -133,6 +133,132 @@ Notes: ${notesStr}`;
 
       // Upload to Drive
       await uploadToDrive(folderId, driveFilename, buffer, mimeType);
+    }
+
+    // 4.3 Generate Cover Photo if requested
+    if (group.generate_cover && group.reference_photo_id) {
+      try {
+        console.log(`[Cover Gen] Downloading reference pose: ${group.reference_photo_id}`);
+        const refBuffer = await downloadFile(group.reference_photo_id);
+        const refBase64 = refBuffer.toString('base64');
+        const refMime = 'image/jpeg'; // assume jpeg for drive reference
+
+        console.log(`[Cover Gen] Downloading source garment: ${actualCoverPhoto.id}`);
+        const { data: fileData, error: downloadError } = await supabaseServer.storage
+          .from('photo-imports')
+          .download(actualCoverPhoto.storage_path);
+        
+        if (downloadError || !fileData) {
+          throw new Error(`Failed to download source photo for cover gen: ${downloadError?.message}`);
+        }
+        
+        const srcBuffer = Buffer.from(await fileData.arrayBuffer());
+        const srcBase64 = srcBuffer.toString('base64');
+        const ext = actualCoverPhoto.storage_path.split('.').pop()?.toLowerCase();
+        let srcMime = 'image/jpeg';
+        if (ext === 'png') srcMime = 'image/png';
+        else if (ext === 'heic') srcMime = 'image/heic';
+
+        const categoryLeaf = (group.category_path || '').split('/').pop() || '';
+        const catLower = categoryLeaf.toLowerCase();
+        
+        let placementInstruction = '';
+        if (catLower.includes('jacket') || catLower.includes('coat') || catLower.includes('jumper') || catLower.includes('cardigan') || catLower.includes('hoodie') || catLower.includes('blouse') || catLower.includes('t-shirt') || catLower.includes('gilet') || catLower.includes('cape') || catLower.includes('bolero') || catLower.includes('top') || catLower.includes('shirt') || catLower.includes('tank') || catLower.includes('cami')) {
+          placementInstruction = "Replace or adjust the model's upper-body clothing to match the item shown in the item photo — fitted naturally across the shoulders, chest, and arms, consistent with the model's existing pose.";
+        } else if (catLower.includes('jean') || catLower.includes('trouser') || catLower.includes('short') || catLower.includes('skirt') || catLower.includes('bottom')) {
+          placementInstruction = "Replace or adjust the model's lower-body clothing to match the item shown in the item photo — fitted naturally at the waist and legs, consistent with the model's existing pose.";
+        } else if (catLower.includes('dress') || catLower.includes('jumpsuit') || catLower.includes('romper') || catLower.includes('nightwear') || catLower.includes('maxi') || catLower.includes('midi') || catLower.includes('mini')) {
+          placementInstruction = "Replace the model's entire outfit with the item shown in the item photo, fitted naturally as a single full-body garment consistent with the model's existing pose and proportions.";
+        } else if (catLower.includes('bag') || catLower.includes('tote') || catLower.includes('clutch') || catLower.includes('accessory')) {
+          placementInstruction = "The model in the reference photo is already holding a placeholder item in her hand(s) — replace that placeholder entirely with the item shown in the item photo, matching the same grip, hand position, and hand placement already present in the reference photo. Do not alter her pose, arm position, or hand position to accommodate the new item — the item should fit naturally into the exact grip already shown.";
+        } else {
+           placementInstruction = "Replace or adjust the model's clothing to match the item shown in the item photo, consistent with the model's existing pose.";
+        }
+
+        const measurementsStr = group.measurements || 'Not specified';
+        const notesStr = group.notes || 'None';
+
+        const openRouterPrompt = `Using the first photo as the base model photo, apply the item from the second photo onto the model.
+
+${placementInstruction}
+
+Match the item exactly as shown in the item photo — color, material, texture, hardware, stitching, pattern, and proportions — with no design alterations, no added details not present in the reference, and no omitted details that are present in the reference.
+
+For scale reference: ${measurementsStr}. Use these to ensure the item's size relative to the model's body, hands, or proportions looks accurate and realistic — not oversized or undersized.
+
+Notes — treat these as important corrections that override default assumptions, not optional flavor text: ${notesStr}. For example, if these specify something like a low-rise fit, that takes priority over how the garment would naturally sit by default.
+
+Do not change, regenerate, or alter the background in any way. The background must remain 100% identical to the reference photo — same room, walls, objects, lighting source, camera angle, and framing.
+
+Keep the model's pose, body position, and proportions natural and consistent with the reference photo — adjust only what is necessary (limb/hand position for held items, or garment fit for worn items) to accommodate the new item believably.
+
+Photo quality: maintain the same casual, iPhone 12-style photo quality already present in the reference photo — natural unenhanced color, mild grain, no added filter, polish, or stylization. Color grading, white balance, and lighting on the added item must match the reference photo exactly — the item's colors and shadows should read as if it were lit by the same light source in the same room, not composited in from a different photo.
+
+Output the complete, full image — do not crop or cut off any part of the model or the item.
+The final output image MUST be exactly a 4:5 aspect ratio.`;
+
+        console.log(`[Cover Gen] Hitting OpenRouter for group ${groupId}...`);
+        const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3.1-flash-lite-image",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: openRouterPrompt },
+                  { type: "image_url", image_url: { url: `data:${refMime};base64,${refBase64}` } },
+                  { type: "image_url", image_url: { url: `data:${srcMime};base64,${srcBase64}` } }
+                ]
+              }
+            ]
+          })
+        });
+
+        const orData = await orRes.json();
+        if (!orRes.ok) {
+          throw new Error(`OpenRouter Error: ${JSON.stringify(orData)}`);
+        }
+
+        const generatedContent = orData.choices[0].message.content;
+        
+        let genBase64 = "";
+        const match = generatedContent.match(/data:image\/[^;]+;base64,([^\)]+)/);
+        if (match && match[1]) {
+          genBase64 = match[1];
+        } else if (generatedContent.startsWith("iVBORw0KGgo") || generatedContent.startsWith("/9j/")) {
+          genBase64 = generatedContent;
+        } else {
+           throw new Error("Could not parse image from OpenRouter response: " + generatedContent.substring(0, 200));
+        }
+
+        let genBuffer = Buffer.from(genBase64, 'base64');
+
+        // [WATERMARK REMOVAL LOGIC HERE]
+
+        console.log(`[Cover Gen] Resizing to strict 1080x1350 with sharp`);
+        const sharp = (await import('sharp')).default;
+        genBuffer = await sharp(genBuffer).resize(1080, 1350, { fit: 'cover' }).jpeg({ quality: 90 }).toBuffer();
+
+        console.log(`[Cover Gen] Uploading final cover.jpg to Drive`);
+        const { fileId } = await uploadToDrive(folderId, 'cover.jpg', genBuffer, 'image/jpeg');
+        
+        // Update group cover photo
+        await supabaseServer
+          .from('groups')
+          .update({ cover_photo_id: fileId })
+          .eq('id', groupId);
+
+        console.log(`[Cover Gen] Success! fileId=${fileId}`);
+
+      } catch (err: any) {
+        console.error(`[Cover Gen] Failed to generate cover photo: ${err.message}`);
+        // We do not throw to avoid failing the whole pipeline just because cover generation failed.
+      }
     }
 
     // 4.5 Generate and upload description file
