@@ -242,7 +242,7 @@ The final output image MUST be exactly 3024x4032 pixels.`;
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "google/gemini-3.1-flash-lite-image",
+            model: "google/gemini-2.5-flash-image",
             messages: [
               {
                 role: "user",
