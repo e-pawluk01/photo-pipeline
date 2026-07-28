@@ -140,9 +140,18 @@ Notes: ${notesStr}`;
     if (group.generate_cover && group.reference_photo_id) {
       try {
         console.log(`[Cover Gen] Downloading reference pose: ${group.reference_photo_id}`);
-        const refBuffer = await downloadFile(group.reference_photo_id);
+        let refBuffer = await downloadFile(group.reference_photo_id);
+        const { convertToCompressedPng } = await import('@/lib/convert');
+        
+        // Convert reference to PNG if it's HEIC
+        const isRefHeic = refBuffer.length >= 12 && ['heic', 'heif', 'mif1', 'msf1', 'hevc', 'hevx'].includes(refBuffer.toString('ascii', 8, 12).toLowerCase());
+        if (isRefHeic) {
+           console.log(`[Cover Gen] Reference is HEIC, converting...`);
+           const refConv = await convertToCompressedPng(refBuffer);
+           refBuffer = refConv.buffer;
+        }
         const refBase64 = refBuffer.toString('base64');
-        const refMime = 'image/jpeg'; // assume jpeg for drive reference
+        const refMime = isRefHeic ? 'image/png' : 'image/jpeg'; // fallback to jpeg unless converted
 
         console.log(`[Cover Gen] Downloading source garment: ${actualCoverPhoto.id}`);
         const { data: fileData, error: downloadError } = await supabaseServer.storage
@@ -153,12 +162,20 @@ Notes: ${notesStr}`;
           throw new Error(`Failed to download source photo for cover gen: ${downloadError?.message}`);
         }
         
-        const srcBuffer = Buffer.from(await fileData.arrayBuffer());
-        const srcBase64 = srcBuffer.toString('base64');
+        let srcBuffer = Buffer.from(await fileData.arrayBuffer());
+        
+        // Convert source garment to PNG if it's HEIC
         const ext = actualCoverPhoto.storage_path.split('.').pop()?.toLowerCase();
         let srcMime = 'image/jpeg';
         if (ext === 'png') srcMime = 'image/png';
-        else if (ext === 'heic') srcMime = 'image/heic';
+        else if (ext === 'heic') {
+           console.log(`[Cover Gen] Source is HEIC, converting...`);
+           const srcConv = await convertToCompressedPng(srcBuffer);
+           srcBuffer = srcConv.buffer;
+           srcMime = 'image/png';
+        }
+        
+        const srcBase64 = srcBuffer.toString('base64');
 
         const categoryLeaf = (group.category_path || '').split('/').pop() || '';
         const catLower = categoryLeaf.toLowerCase();
