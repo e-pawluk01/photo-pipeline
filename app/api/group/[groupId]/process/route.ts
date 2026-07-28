@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ensureFolder, uploadToDrive, downloadFile } from '@/lib/drive';
+import { removeWatermark } from '@/lib/watermark';
 import { GoogleGenAI } from '@google/genai';
 
 export const maxDuration = 300; // 5 mins max duration for processing a group if supported by plan
@@ -195,7 +196,7 @@ Keep the model's pose, body position, and proportions natural and consistent wit
 Photo quality: maintain the same casual, iPhone 12-style photo quality already present in the reference photo — natural unenhanced color, mild grain, no added filter, polish, or stylization. Color grading, white balance, and lighting on the added item must match the reference photo exactly — the item's colors and shadows should read as if it were lit by the same light source in the same room, not composited in from a different photo.
 
 Output the complete, full image — do not crop or cut off any part of the model or the item.
-The final output image MUST be exactly a 4:5 aspect ratio.`;
+The final output image MUST be exactly 3024x4032 pixels.`;
 
         console.log(`[Cover Gen] Hitting OpenRouter for group ${groupId}...`);
         const orRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -238,11 +239,8 @@ The final output image MUST be exactly a 4:5 aspect ratio.`;
 
         let genBuffer = Buffer.from(genBase64, 'base64');
 
-        // [WATERMARK REMOVAL LOGIC HERE]
-
-        console.log(`[Cover Gen] Resizing to strict 1080x1350 with sharp`);
-        const sharp = (await import('sharp')).default;
-        genBuffer = await sharp(genBuffer).resize(1080, 1350, { fit: 'cover' }).jpeg({ quality: 90 }).toBuffer();
+        console.log(`[Cover Gen] Removing Gemini watermark...`);
+        genBuffer = await removeWatermark(genBuffer);
 
         console.log(`[Cover Gen] Uploading final cover.jpg to Drive`);
         const { fileId } = await uploadToDrive(folderId, 'cover.jpg', genBuffer, 'image/jpeg');
