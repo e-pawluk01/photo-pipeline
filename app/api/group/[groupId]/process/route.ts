@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ensureFolder, uploadToDrive, downloadFile } from '@/lib/drive';
-import { removeWatermark } from '@/lib/watermark';
 
 export const maxDuration = 300; // 5 mins max duration for processing a group if supported by plan
 
