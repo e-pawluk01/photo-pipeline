@@ -201,37 +201,39 @@ Notes: ${notesStr}`;
         
         let placementInstruction = '';
         if (catLower.includes('jacket') || catLower.includes('coat') || catLower.includes('jumper') || catLower.includes('cardigan') || catLower.includes('hoodie') || catLower.includes('blouse') || catLower.includes('t-shirt') || catLower.includes('gilet') || catLower.includes('cape') || catLower.includes('bolero') || catLower.includes('top') || catLower.includes('shirt') || catLower.includes('tank') || catLower.includes('cami')) {
-          placementInstruction = "Replace or adjust the model's upper-body clothing to match the item shown in the item photo — fitted naturally across the shoulders, chest, and arms, consistent with the model's existing pose.";
+          placementInstruction = "Replace or adjust the subject's upper-body clothing to match the item shown in the item photo — fitted naturally across the shoulders, chest, and arms, consistent with the subject's existing pose.";
         } else if (catLower.includes('jean') || catLower.includes('trouser') || catLower.includes('short') || catLower.includes('skirt') || catLower.includes('bottom')) {
-          placementInstruction = "Replace or adjust the model's lower-body clothing to match the item shown in the item photo — fitted naturally at the waist and legs, consistent with the model's existing pose.";
+          placementInstruction = "Replace or adjust the subject's lower-body clothing to match the item shown in the item photo — fitted naturally at the waist and legs, consistent with the subject's existing pose.";
         } else if (catLower.includes('dress') || catLower.includes('jumpsuit') || catLower.includes('romper') || catLower.includes('nightwear') || catLower.includes('maxi') || catLower.includes('midi') || catLower.includes('mini')) {
-          placementInstruction = "Replace the model's entire outfit with the item shown in the item photo, fitted naturally as a single full-body garment consistent with the model's existing pose and proportions.";
+          placementInstruction = "Replace the subject's entire outfit with the item shown in the item photo, fitted naturally as a single full-body garment consistent with the subject's existing pose and proportions.";
         } else if (catLower.includes('bag') || catLower.includes('tote') || catLower.includes('clutch') || catLower.includes('accessory')) {
-          placementInstruction = "The model in the reference photo is already holding a placeholder item in her hand(s) — replace that placeholder entirely with the item shown in the item photo, matching the same grip, hand position, and hand placement already present in the reference photo. Do not alter her pose, arm position, or hand position to accommodate the new item — the item should fit naturally into the exact grip already shown.";
+          placementInstruction = "The subject in the reference photo is already holding a placeholder item in their hand(s) — replace that placeholder entirely with the item shown in the item photo, matching the same grip, hand position, and hand placement already present in the reference photo. Do not alter their pose, arm position, or hand position to accommodate the new item — the item should fit naturally into the exact grip already shown.";
         } else {
-           placementInstruction = "Replace or adjust the model's clothing to match the item shown in the item photo, consistent with the model's existing pose.";
+           placementInstruction = "Replace or adjust the subject's clothing to match the item shown in the item photo, consistent with the subject's existing pose.";
         }
 
         const measurementsStr = group.measurements || 'Not specified';
         const notesStr = group.notes || 'None';
 
-        const openRouterPrompt = `Using the first photo as the base model photo, apply the item from the second photo onto the model.
+        const openRouterPrompt = `Using the first photo as the base reference photo, apply the item from the second photo onto the subject.
 
 ${placementInstruction}
 
 Match the item exactly as shown in the item photo — color, material, texture, hardware, stitching, pattern, and proportions — with no design alterations, no added details not present in the reference, and no omitted details that are present in the reference.
 
-For scale reference: ${measurementsStr}. Use these to ensure the item's size relative to the model's body, hands, or proportions looks accurate and realistic — not oversized or undersized.
+For scale reference: ${measurementsStr}. Use these to ensure the item's size relative to the subject's figure, hands, or proportions looks accurate and realistic — not oversized or undersized.
 
 Notes — treat these as important corrections that override default assumptions, not optional flavor text: ${notesStr}. For example, if these specify something like a low-rise fit, that takes priority over how the garment would naturally sit by default.
 
 Do not change, regenerate, or alter the background in any way. The background must remain 100% identical to the reference photo — same room, walls, objects, lighting source, camera angle, and framing.
 
-Keep the model's pose, body position, and proportions natural and consistent with the reference photo — adjust only what is necessary (limb/hand position for held items, or garment fit for worn items) to accommodate the new item believably.
+Keep the subject's pose, figure position, and proportions natural and consistent with the reference photo — adjust only what is necessary (limb/hand position for held items, or garment fit for worn items) to accommodate the new item believably.
+
+CRITICAL INSTRUCTION: The subject must remain perfectly photorealistic and lifelike. Preserve all exact original skin texture, skin tone, lighting, and human details of the subject. Do not smooth out features or generate a mannequin, doll, or CGI appearance.
 
 Photo quality: maintain the same casual, iPhone 12-style photo quality already present in the reference photo — natural unenhanced color, mild grain, no added filter, polish, or stylization. Color grading, white balance, and lighting on the added item must match the reference photo exactly — the item's colors and shadows should read as if it were lit by the same light source in the same room, not composited in from a different photo.
 
-Output the complete, full image — do not crop or cut off any part of the model or the item.
+Output the complete, full image — do not crop or cut off any part of the subject or the item.
 The final output image MUST be exactly 3024x4032 pixels.`;
 
         console.log(`[Cover Gen] Hitting OpenRouter for group ${groupId}...`);
