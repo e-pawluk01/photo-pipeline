@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       <html>
         <body style="font-family: monospace; padding: 40px; background: #000; color: #fff;">
           <h2>Google Authentication Successful!</h2>
-          <p>Please copy the refresh token below and save it to your Supabase/Vercel environment variables as <b>GOOGLE_REFRESH_TOKEN</b>.</p>
+          <p>Please copy the refresh token below and save it to your Supabase/Vercel environment variables as <b>GOOGLE_OAUTH_REFRESH_TOKEN</b>.</p>
           <div style="background: #222; padding: 20px; border-radius: 8px; word-break: break-all; margin-top: 20px;">
             ${tokens.refresh_token || 'NO REFRESH TOKEN RECEIVED (You might need to revoke access in your Google Account and try again)'}
           </div>
