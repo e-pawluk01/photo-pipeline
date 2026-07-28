@@ -188,7 +188,14 @@ export async function removeWatermark(imageBuffer: Buffer, isV1: boolean = false
         }
     }
     
-    removeWatermarkAlphaBlend(data, info, alphaMapData, { x: bestX, y: bestY });
+    console.log(`[Watermark] Best NCC score: ${bestScore.toFixed(3)} at (${bestX}, ${bestY})`);
+    
+    // Only apply removal if we actually found a strong match for the watermark template
+    if (bestScore > 0.4) {
+        removeWatermarkAlphaBlend(data, info, alphaMapData, { x: bestX, y: bestY });
+    } else {
+        console.log(`[Watermark] Score too low (< 0.4), assuming no watermark present. Skipping removal.`);
+    }
     
     return await sharp(data, {
         raw: {

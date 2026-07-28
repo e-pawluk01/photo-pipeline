@@ -291,9 +291,6 @@ The final output image MUST be exactly 3024x4032 pixels.`;
 
         let genBuffer = Buffer.from(genBase64, 'base64');
 
-        console.log(`[Cover Gen] Removing Gemini watermark...`);
-        genBuffer = await removeWatermark(genBuffer);
-
         console.log(`[Cover Gen] Uploading final cover.jpg to Drive`);
         const { fileId } = await uploadToDrive(folderId, 'cover.jpg', genBuffer, 'image/jpeg');
         
