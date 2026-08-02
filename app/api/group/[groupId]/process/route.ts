@@ -49,7 +49,12 @@ export async function POST(request: Request, { params }: { params: { groupId: st
     }
 
     // 3. Sanitize title and create Drive folder
-    const safeTitle = (group.title || 'Untitled').replace(/[\\/*?:"<>|]/g, '-').replace(/\s+/g, ' ').trim();
+    let safeTitle = (group.title || 'Untitled').replace(/[\\/*?:"<>|]/g, '-').replace(/\s+/g, ' ').trim();
+    
+    // Append a short identifier to guarantee folder uniqueness across different groups
+    // This prevents multiple groups with the same title (e.g. "Untitled") from merging into one folder.
+    const shortId = groupId.split('-')[0];
+    safeTitle = `${safeTitle} - ${shortId}`;
     
     // Create folder in Drive
     const { folderId, folderLink } = await ensureFolder(safeTitle, parentId);
