@@ -316,10 +316,12 @@ The final output image MUST be exactly 3024x4032 pixels.`;
       seoTitle = await aiTitlePromise;
     }
 
+    const notesLine = group.notes ? `\n★ Notes: ${group.notes}` : '';
+
     const descriptionText = `${seoTitle}\n\n｡°✩ Item Details ✩°｡⋆
 ★ Brand: ${brandStr}
 ★ Size: ${group.size}
-★ Condition: ${group.condition}
+★ Condition: ${group.condition}${notesLine}
 
 ⋆｡°✩ Please Read Carefully ✩°｡⋆
 ★ Condition Note: We do our best to thoroughly inspect every piece! Any minor damages, stains, rips, or signs of wear are clearly shown in the photos and reflected in the price. Please swipe through all images before buying!
