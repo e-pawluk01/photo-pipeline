@@ -1113,6 +1113,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   const [generateCover, setGenerateCover] = useState(group.generate_cover || false);
   const [referencePhotoId, setReferencePhotoId] = useState<string | null>(group.reference_photo_id || null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     // If taxonomy has been updated and the saved cat is missing, default to Outerwear
@@ -1269,11 +1270,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
       <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-6">
         
         {/* Delete Button - Isolated on the left */}
-        <button onClick={() => {
-          if (window.confirm('Are you sure you want to delete this group? The photos will be returned to your loose photos.')) {
-            onDelete();
-          }
-        }} className="flex h-12 w-16 items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 transition active:scale-90 text-red-500 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)] backdrop-blur-3xl">
+        <button onClick={() => setShowDeleteConfirm(true)} className="flex h-12 w-16 items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 transition active:scale-90 text-red-500 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)] backdrop-blur-3xl">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </button>
 
@@ -1290,6 +1287,32 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
           </button>
         </div>
       </footer>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-6">
+          <div className="bg-[#111] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </div>
+            <h2 className="text-xl font-medium tracking-wide mb-3">Delete Group?</h2>
+            <p className="text-white/50 text-sm mb-8 leading-relaxed">
+              Are you sure you want to delete this group? The photos will be returned to your loose photos and won't be deleted.
+            </p>
+            <div className="flex w-full space-x-3">
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 transition active:scale-95 text-sm font-medium tracking-wide">
+                Cancel
+              </button>
+              <button onClick={() => {
+                setShowDeleteConfirm(false);
+                onDelete();
+              }} className="flex-1 py-3.5 rounded-xl bg-red-500 hover:bg-red-600 transition active:scale-95 text-white text-sm font-semibold tracking-wide shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
