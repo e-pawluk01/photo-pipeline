@@ -419,6 +419,12 @@ function AppShell() {
                body: JSON.stringify({ ...activeGroup, cover_photo_id: photoId })
              });
           }}
+          onDelete={async () => {
+             setGroups(prev => prev.filter(g => g.id !== activeGroupId));
+             setPhotos(prev => prev.map(p => p.group_id === activeGroupId ? { ...p, group_id: null } : p));
+             setActiveGroupId(null);
+             fetch(`/api/group/${activeGroupId}`, { method: 'DELETE' });
+          }}
         />
       );
     }
@@ -1088,7 +1094,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
 // ----------------------------------------------------------------------------------
 // Detail View Component (Edit Mode)
 // ----------------------------------------------------------------------------------
-function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemovePhoto, onSetCover }: any) {
+function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemovePhoto, onSetCover, onDelete }: any) {
   const groupPhotos = photos.filter((p: Photo) => p.group_id === group.id);
   
   const [title, setTitle] = useState(group.title);
@@ -1263,6 +1269,13 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
       <footer className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center bg-black/80 backdrop-blur-3xl border border-white/20 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.8)] px-2 py-2 space-x-2">
         <button onClick={onBack} className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button onClick={() => {
+          if (window.confirm('Are you sure you want to delete this group? The photos will be returned to your loose photos.')) {
+            onDelete();
+          }
+        }} className="flex h-12 w-16 items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 transition active:scale-90 text-red-500">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </button>
         <button onClick={onAddPhotos} className="flex h-12 w-16 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14m-7-7h14"/></svg>
