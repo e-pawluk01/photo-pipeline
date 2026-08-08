@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ensureFolder, uploadToDrive, downloadFile } from '@/lib/drive';
-
+import { appendToGoogleSheet } from '@/lib/google-sheets';
 export const maxDuration = 300; // 5 mins max duration for processing a group if supported by plan
 
 export async function POST(request: Request, { params }: { params: { groupId: string } }) {
@@ -319,6 +319,13 @@ The final output image MUST be exactly 3024x4032 pixels.`;
     let seoTitle = group.title || 'Untitled';
     if (aiTitlePromise) {
       seoTitle = await aiTitlePromise;
+    }
+
+    // Append to Google Sheets with the SEO title
+    try {
+      await appendToGoogleSheet({ ...group, title: seoTitle });
+    } catch (e) {
+      console.error('Failed to append to Google Sheets:', e);
     }
 
     const notesLine = group.notes ? `\n★ Notes: ${group.notes}` : '';
