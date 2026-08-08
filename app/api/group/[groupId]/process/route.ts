@@ -336,7 +336,8 @@ The final output image MUST be exactly 3024x4032 pixels.`;
 
 ˚₊‧꒰ა ☆ ໒꒱ ‧₊˚ Tags: #y2k #y2kfashion #y2kaesthetic #y2kstyle #2000s #00s #2000sfashion #early2000s #noughties #y2kvintage #vintagey2k #2000saesthetic #00svintage #retro #nostalgia #millennium #vintage #rare #deadstock #statementpiece #thrifted #streetwear #bratz #bratzdoll #bratzcore #modeloffduty #itgirl #bimbocore #goblincore #y2kfinds #vintedfinds #truevintage #preloved #alt #alternative #altfashion #altgirl #mallgoth #cybercore #cybery2k #fairycore #fairygrunge #trashy2k #mcbling #gothcore #downtowngirl #grunge #y2kgrunge #grungefairy #archive #archivefashion #goth #darkcoquette #whimsigoth #clubkid #raver #vampy
 
-★ Category: ${group.category_path}`;
+★ Category: ${group.category_path}
+★ SKU: ${group.sku || 'N/A'}`;
 
     const descriptionBuffer = Buffer.from(descriptionText, 'utf-8');
     await uploadToDrive(folderId, 'description.txt', descriptionBuffer, 'text/plain');

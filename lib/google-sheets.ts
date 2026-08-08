@@ -38,14 +38,17 @@ export async function appendToGoogleSheet(groupData: any) {
 
     // If tab doesn't exist, create it and add headers
     if (!sheetExists) {
-      await sheets.spreadsheets.batchUpdate({
+      const addSheetResponse = await sheets.spreadsheets.batchUpdate({
         spreadsheetId,
         requestBody: {
           requests: [
             {
               addSheet: {
                 properties: {
-                  title: tabName
+                  title: tabName,
+                  gridProperties: {
+                    frozenRowCount: 1
+                  }
                 }
               }
             }
@@ -53,17 +56,80 @@ export async function appendToGoogleSheet(groupData: any) {
         }
       });
 
-      // Add Headers
-      await sheets.spreadsheets.values.append({
+      const newSheetId = addSheetResponse.data.replies?.[0]?.addSheet?.properties?.sheetId;
+
+      // Add Headers exactly at A1:G1
+      await sheets.spreadsheets.values.update({
         spreadsheetId,
         range: `${tabName}!A1:G1`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [['item', 'sourced', 'bought for', 'recommended price', 'Inital up. pri.', 'sold for', 'SKU']]
+          values: [['item', 'sourced', 'bought for', 'recomend price', 'Inital up. pri.', 'sold for', 'SKU']]
         }
       });
       
-      // Optionally format the header row with background color (skipped for brevity)
+      // Apply rich formatting
+      if (newSheetId !== undefined) {
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            requests: [
+              // Column A (item) width
+              {
+                updateDimensionProperties: {
+                  range: { sheetId: newSheetId, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 },
+                  properties: { pixelSize: 220 },
+                  fields: 'pixelSize'
+                }
+              },
+              // Column B (sourced) width
+              {
+                updateDimensionProperties: {
+                  range: { sheetId: newSheetId, dimension: 'COLUMNS', startIndex: 1, endIndex: 2 },
+                  properties: { pixelSize: 180 },
+                  fields: 'pixelSize'
+                }
+              },
+              // Columns C-G widths
+              {
+                updateDimensionProperties: {
+                  range: { sheetId: newSheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 7 },
+                  properties: { pixelSize: 130 },
+                  fields: 'pixelSize'
+                }
+              },
+              // Format Row 1 (Headers)
+              {
+                repeatCell: {
+                  range: { sheetId: newSheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+                  cell: {
+                    userEnteredFormat: {
+                      backgroundColor: { red: 0.98, green: 0.78, blue: 0.89 }, // Light Pink
+                      textFormat: { bold: true },
+                      horizontalAlignment: 'CENTER',
+                      verticalAlignment: 'MIDDLE'
+                    }
+                  },
+                  fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
+                }
+              },
+              // Format Columns A-G Data Alignment (Centered)
+              {
+                repeatCell: {
+                  range: { sheetId: newSheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+                  cell: {
+                    userEnteredFormat: {
+                      horizontalAlignment: 'CENTER',
+                      verticalAlignment: 'MIDDLE'
+                    }
+                  },
+                  fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)'
+                }
+              }
+            ]
+          }
+        });
+      }
     }
 
     // Append the new row
