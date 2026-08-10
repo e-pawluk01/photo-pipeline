@@ -1214,7 +1214,6 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
         measurements,
         generate_cover: generateCover,
         reference_photo_id: referencePhotoId,
-        sourced,
       };
       const res = await fetch('/api/group/edit', {
         method: 'POST',
