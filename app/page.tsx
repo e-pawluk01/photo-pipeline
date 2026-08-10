@@ -931,7 +931,6 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [subcat, setSubcat] = useState('Jackets');
   const [title, setTitle] = useState('');
   const [brand, setBrand] = useState('');
-  const [boughtForPrice, setBoughtForPrice] = useState('');
   const [size, setSize] = useState(CLOTHING_SIZES[2]);
   const [condition, setCondition] = useState('Very good');
   const [notes, setNotes] = useState('');
@@ -1175,7 +1174,6 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   const groupPhotos = photos.filter((p: Photo) => p.group_id === group.id);
   
   const [title, setTitle] = useState(group.title);
-  const [brand, setBrand] = useState(group.brand || '');
   const [brand, setBrand] = useState(group.brand || '');
   
   const parts = group.category_path.split('/');
