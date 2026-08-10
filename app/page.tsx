@@ -111,6 +111,10 @@ function AppShell() {
   const [pendingPriceFile, setPendingPriceFile] = useState<File | null>(null);
   const [pendingPrice, setPendingPrice] = useState<string>('');
 
+  const [processing, setProcessing] = useState(false);
+  const [processProgress, setProcessProgress] = useState(0);
+  const [processStats, setProcessStats] = useState<{ success: number; total: number } | null>(null);
+
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [progressGroups, setProgressGroups] = useState<Group[]>([]);
@@ -352,10 +356,21 @@ function AppShell() {
   }
 
   async function startProcessing(groupsToProcess: Group[]) {
+    if (groupsToProcess.length === 0) return;
+    
+    setProcessing(true);
+    setProcessProgress(0);
+    const totalToProcess = groupsToProcess.length;
     let successCount = 0;
+    let completed = 0;
+    setProcessStats({ success: 0, total: totalToProcess });
+
     for (const g of groupsToProcess) {
       if (g.status === 'done') {
         successCount++;
+        completed++;
+        setProcessProgress(Math.round((completed / totalToProcess) * 100));
+        setProcessStats({ success: successCount, total: totalToProcess });
         continue;
       }
       // Optimistic update
@@ -373,8 +388,13 @@ function AppShell() {
       } catch (err: any) {
         setProgressGroups(prev => prev.map(x => x.id === g.id ? { ...x, status: 'failed', error_message: err.message } : x));
       }
+      
+      completed++;
+      setProcessProgress(Math.round((completed / totalToProcess) * 100));
+      setProcessStats({ success: successCount, total: totalToProcess });
     }
     // Refresh main view after processing all
+    setProcessing(false);
     refetchMainData();
     setSendResult({ count: successCount });
   }
@@ -485,6 +505,17 @@ function AppShell() {
             </div>
             <p className="text-[10px] font-mono text-white/80 uppercase tracking-wider">
               {uploadStats.success} / {uploadStats.total} Uploaded
+            </p>
+          </div>
+        )}
+
+        {processing && processStats && (
+          <div className="mt-4 bg-black/80 backdrop-blur-xl border border-white/20 px-4 py-1.5 rounded-full flex items-center gap-3 pointer-events-auto shadow-xl">
+            <div className="w-24 h-1 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white transition-all duration-300" style={{ width: `${processProgress}%` }} />
+            </div>
+            <p className="text-[10px] font-mono text-white/80 uppercase tracking-wider">
+              {processStats.success} / {processStats.total} Processed
             </p>
           </div>
         )}
