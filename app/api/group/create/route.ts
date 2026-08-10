@@ -79,14 +79,8 @@ export async function POST(request: Request) {
 
     try {
       await appendToGoogleSheet(groupData);
-    } catch (sheetError: any) {
+    } catch (sheetError) {
       console.error('Failed to append to Google Sheets during group creation:', sheetError);
-      
-      // DIAGNOSTIC: Save the Google Sheets error to the database so we can see it in the UI
-      await supabaseServer
-        .from('groups')
-        .update({ error_message: 'Google Sheets Error: ' + sheetError.message })
-        .eq('id', groupData.id);
     }
 
     return NextResponse.json({ success: true, group: groupData });
