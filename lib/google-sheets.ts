@@ -150,8 +150,8 @@ export async function appendToGoogleSheet(groupData: any) {
     });
 
     console.log(`Successfully appended SKU ${groupData.sku} to Google Sheet tab ${tabName}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error appending to Google Sheet:', error);
-    // We don't throw here to avoid failing the group creation process
+    return error.message || 'Unknown Google Sheets error';
   }
 }

@@ -77,8 +77,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: photoUpdateError.message }, { status: 500 });
     }
 
+    // Attempt to sync to Google Sheets (non-blocking)
     try {
-      await appendToGoogleSheet(groupData);
+      const sheetsErrorMsg = await appendToGoogleSheet(groupData);
+      if (typeof sheetsErrorMsg === 'string') {
+        // Silently log the error to Supabase without disrupting the user flow
+        await supabaseServer.from('groups').update({ error_message: 'Google Sheets Error: ' + sheetsErrorMsg }).eq('id', groupData.id);
+      }
     } catch (sheetError) {
       console.error('Failed to append to Google Sheets during group creation:', sheetError);
     }
