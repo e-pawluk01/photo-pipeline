@@ -61,7 +61,7 @@ export async function appendToGoogleSheet(groupData: any) {
       // Add Headers exactly at A1:G1
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${tabName}!A1:D1`,
+        range: `'${tabName}'!A1:D1`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [['item', 'SP', 'SF', 'SKU']]
@@ -142,7 +142,7 @@ export async function appendToGoogleSheet(groupData: any) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: `${tabName}!A:D`,
+      range: `'${tabName}'!A:D`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [rowData]
