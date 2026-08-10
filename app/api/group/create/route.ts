@@ -23,7 +23,7 @@ function getSkuPrefix(categoryName: string) {
 
 export async function POST(request: Request) {
   try {
-    const { title, category_path, brand, condition, size, notes, measurements, generate_cover, reference_photo_id, photoIds, cover_photo_id, session_id, bought_for_price, sourced } = await request.json();
+    const { title, category_path, brand, condition, size, notes, measurements, generate_cover, reference_photo_id, photoIds, cover_photo_id, session_id, bought_for_price } = await request.json();
 
     if (!title || !category_path || !size || !condition || !photoIds || photoIds.length === 0 || !cover_photo_id || !session_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -56,7 +56,6 @@ export async function POST(request: Request) {
           cover_photo_id,
           session_id,
           bought_for_price: bought_for_price || null,
-          sourced: sourced || null,
           sku: skuStr
         }
       ])

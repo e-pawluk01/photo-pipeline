@@ -926,7 +926,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
   const [subcat, setSubcat] = useState('Jackets');
   const [title, setTitle] = useState('');
   const [brand, setBrand] = useState('');
-  const [sourced, setSourced] = useState('');
+  const [boughtForPrice, setBoughtForPrice] = useState('');
   const [size, setSize] = useState(CLOTHING_SIZES[2]);
   const [condition, setCondition] = useState('Very good');
   const [notes, setNotes] = useState('');
@@ -977,8 +977,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
           photoIds: idsArray,
           cover_photo_id: idsArray[0],
           session_id: sessionId,
-          bought_for_price: boughtForPrice ? parseFloat(boughtForPrice as string) : null,
-          sourced
+          bought_for_price: boughtForPrice ? parseFloat(boughtForPrice as string) : null
         })
       });
       const data = await res.json();
@@ -1016,15 +1015,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Sourced From</label>
-            <input 
-              value={sourced} onChange={(e) => setSourced(e.target.value)}
-              placeholder="e.g. Thrift Store"
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none focus:border-white/50 text-white placeholder:text-white/20"
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Bought For (£)</label>
             <input 
@@ -1180,7 +1171,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
   
   const [title, setTitle] = useState(group.title);
   const [brand, setBrand] = useState(group.brand || '');
-  const [sourced, setSourced] = useState(group.sourced || '');
+  const [brand, setBrand] = useState(group.brand || '');
   
   const parts = group.category_path.split('/');
   // parts[0] is "Woman", parts[1] is Category, parts[2] is Subcategory
@@ -1284,14 +1275,7 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
             </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40 mb-2">Sourced From</label>
-              <input value={sourced} onChange={(e) => setSourced(e.target.value)} placeholder="e.g. Thrift Store, Vinted" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 outline-none text-white focus:border-white/50 transition-colors" />
-            </div>
-          </div>
-
-          <div className="space-y-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="space-y-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
             <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Category</label>
             <select value={cat} onChange={(e) => setCat(e.target.value)} className="w-full bg-black border border-white/10 rounded-lg p-3 outline-none text-white appearance-none">
               {Object.keys(TAXONOMY).map(c => <option key={c}>{c}</option>)}
