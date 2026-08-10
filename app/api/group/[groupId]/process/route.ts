@@ -47,16 +47,11 @@ export async function POST(request: Request, { params }: { params: { groupId: st
       throw new Error('No photos found in this group');
     }
 
-    // 3. Sanitize title and create Drive folder
-    let safeTitle = (group.title || 'Untitled').replace(/[\\/*?:"<>|]/g, '-').replace(/\s+/g, ' ').trim();
-    
-    // Append a short identifier to guarantee folder uniqueness across different groups
-    // This prevents multiple groups with the same title (e.g. "Untitled") from merging into one folder.
-    const shortId = groupId.split('-')[0];
-    safeTitle = `${safeTitle} - ${shortId}`;
+    // 3. Name folder using SKU
+    const folderName = group.sku || `No-SKU-${groupId.split('-')[0]}`;
     
     // Create folder in Drive
-    const { folderId, folderLink } = await ensureFolder(safeTitle, parentId);
+    const { folderId, folderLink } = await ensureFolder(folderName, parentId);
 
     let aiTitlePromise: Promise<string> | null = null;
 
