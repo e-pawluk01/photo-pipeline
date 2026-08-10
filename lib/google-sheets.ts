@@ -132,10 +132,9 @@ export async function appendToGoogleSheet(groupData: any) {
       }
     }
 
-    // Append the new row
     // Columns: A: item, B: SP, C: SF, D: SKU
     const rowData = [
-      groupData.title || '',
+      '', // Blank item title per user request
       groupData.bought_for_price ? `£${groupData.bought_for_price}` : '0',
       '', // SF
       groupData.sku || ''
