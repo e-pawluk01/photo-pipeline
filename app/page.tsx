@@ -123,6 +123,34 @@ function AppShell() {
   // Detail View & Adding
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [addingToGroupId, setAddingToGroupId] = useState<string | null>(null);
+  
+  // Features Modal
+  const [isFeaturesModalOpen, setIsFeaturesModalOpen] = useState(false);
+  const [skuCategory, setSkuCategory] = useState('Outerwear');
+  const [generatedSku, setGeneratedSku] = useState<string | null>(null);
+  const [isGeneratingSku, setIsGeneratingSku] = useState(false);
+  
+  async function handleGenerateSku() {
+    setIsGeneratingSku(true);
+    setGeneratedSku(null);
+    try {
+      const res = await fetch('/api/sku/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryName: skuCategory })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGeneratedSku(data.sku);
+      } else {
+        alert('Failed to generate SKU: ' + data.error);
+      }
+    } catch (e) {
+      alert('Error generating SKU');
+    } finally {
+      setIsGeneratingSku(false);
+    }
+  }
 
   // Send State
   const [sendResult, setSendResult] = useState<{count: number} | null>(null);
@@ -418,12 +446,19 @@ function AppShell() {
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ ...activeGroup, cover_photo_id: photoId })
              });
-          }}
+          onRemovePhoto={handleDeletePhoto}
+          onSetCover={handleSetCover}
           onDelete={async () => {
-             setGroups(prev => prev.filter(g => g.id !== activeGroupId));
-             setPhotos(prev => prev.map(p => p.group_id === activeGroupId ? { ...p, group_id: null } : p));
-             setActiveGroupId(null);
-             fetch(`/api/group/${activeGroupId}`, { method: 'DELETE' });
+            await fetch(`/api/group/${activeGroupId}`, { method: 'DELETE' });
+            setActiveGroupId(null);
+            refetchMainData();
+          }}
+          onProcess={() => {
+            const group = groups.find(g => g.id === activeGroupId);
+            if (group) {
+              startProcessing([group]);
+              setActiveGroupId(null);
+            }
           }}
         />
       );
@@ -432,7 +467,12 @@ function AppShell() {
 
   return (
     <main className="flex min-h-[100dvh] flex-col bg-black text-white selection:bg-white selection:text-black pb-[120px]">
-      <header className="sticky top-8 z-40 flex flex-col items-center pointer-events-none">
+      <header className="sticky top-8 z-40 flex flex-col items-center pointer-events-none relative w-full">
+        <div className="absolute left-8 top-0 pointer-events-auto">
+          <button onClick={() => setIsFeaturesModalOpen(true)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition active:scale-90 text-white border border-white/20 backdrop-blur-3xl shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+        </div>
         <div className="bg-black/80 backdrop-blur-3xl border border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.8)] rounded-full flex items-center p-1 pointer-events-auto">
           <TabButton active={activeTab === 'photos'} onClick={() => setActiveTab('photos')} label="Photos" />
           <TabButton active={activeTab === 'groups'} onClick={() => setActiveTab('groups')} label="Groups" />
@@ -720,6 +760,48 @@ function AppShell() {
              <button onClick={() => setSendResult(null)} className="w-full bg-white text-black py-3 rounded-full text-sm font-bold tracking-wide hover:bg-white/90 transition">
                Awesome
              </button>
+          </div>
+        </div>
+      )}
+
+      {isFeaturesModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md px-6">
+          <div className="bg-[#111] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center">
+            <h2 className="text-xl font-medium tracking-wide mb-6">Additional Features</h2>
+            
+            <div className="w-full space-y-4">
+              <div>
+                <label className="text-xs uppercase tracking-widest text-white/50 font-bold mb-2 block">SKU Generator</label>
+                <select
+                  value={skuCategory}
+                  onChange={e => setSkuCategory(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/30"
+                >
+                  {Object.keys(TAXONOMY).map(cat => (
+                    <option key={cat} value={cat} className="bg-[#111]">{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={handleGenerateSku}
+                disabled={isGeneratingSku}
+                className="w-full bg-white text-black py-3 rounded-xl text-sm font-bold tracking-wide hover:bg-white/90 transition disabled:opacity-50"
+              >
+                {isGeneratingSku ? 'Generating...' : 'Generate SKU'}
+              </button>
+
+              {generatedSku && (
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center mt-4">
+                  <p className="text-xs text-green-500 uppercase tracking-wider mb-1">Generated SKU</p>
+                  <p className="text-2xl font-mono text-white">{generatedSku}</p>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setIsFeaturesModalOpen(false)} className="mt-8 w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 transition active:scale-95 text-sm font-medium tracking-wide">
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -1094,7 +1176,7 @@ function GroupModal({ photos, selectedIds, sessionId, onClose, onDeselect, onSuc
 // ----------------------------------------------------------------------------------
 // Detail View Component (Edit Mode)
 // ----------------------------------------------------------------------------------
-function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemovePhoto, onSetCover, onDelete }: any) {
+function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemovePhoto, onSetCover, onDelete, onProcess }: any) {
   const groupPhotos = photos.filter((p: Photo) => p.group_id === group.id);
   
   const [title, setTitle] = useState(group.title);
@@ -1286,6 +1368,13 @@ function GroupDetailView({ group, photos, onUpdate, onBack, onAddPhotos, onRemov
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
         </div>
+
+        {/* Process Button - Isolated on the right */}
+        {group.status !== 'done' && group.status !== 'filing' && (
+          <button onClick={onProcess} className="flex h-12 w-16 items-center justify-center rounded-full bg-green-500/10 hover:bg-green-500/20 transition active:scale-90 text-green-500 border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.15)] backdrop-blur-3xl">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        )}
       </footer>
 
       {/* Delete Confirmation Modal */}

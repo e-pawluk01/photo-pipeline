@@ -61,10 +61,10 @@ export async function appendToGoogleSheet(groupData: any) {
       // Add Headers exactly at A1:G1
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${tabName}!A1:G1`,
+        range: `${tabName}!A1:D1`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [['item', 'sourced', 'bought for', 'recomend price', 'Inital up. pri.', 'sold for', 'SKU']]
+          values: [['item', 'SP', 'SF', 'SKU']]
         }
       });
       
@@ -90,10 +90,10 @@ export async function appendToGoogleSheet(groupData: any) {
                   fields: 'pixelSize'
                 }
               },
-              // Columns C-G widths
+              // Columns C-D widths
               {
                 updateDimensionProperties: {
-                  range: { sheetId: newSheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 7 },
+                  range: { sheetId: newSheetId, dimension: 'COLUMNS', startIndex: 2, endIndex: 4 },
                   properties: { pixelSize: 130 },
                   fields: 'pixelSize'
                 }
@@ -101,7 +101,7 @@ export async function appendToGoogleSheet(groupData: any) {
               // Format Row 1 (Headers)
               {
                 repeatCell: {
-                  range: { sheetId: newSheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+                  range: { sheetId: newSheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 4 },
                   cell: {
                     userEnteredFormat: {
                       backgroundColor: { red: 0.98, green: 0.78, blue: 0.89 }, // Light Pink
@@ -113,10 +113,10 @@ export async function appendToGoogleSheet(groupData: any) {
                   fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment)'
                 }
               },
-              // Format Columns A-G Data Alignment (Centered)
+              // Format Columns A-D Data Alignment (Centered)
               {
                 repeatCell: {
-                  range: { sheetId: newSheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+                  range: { sheetId: newSheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: 4 },
                   cell: {
                     userEnteredFormat: {
                       horizontalAlignment: 'CENTER',
@@ -133,20 +133,17 @@ export async function appendToGoogleSheet(groupData: any) {
     }
 
     // Append the new row
-    // Columns: A: item, B: sourced, C: bought for, D: rec price, E: init up pri, F: sold for, G: SKU
+    // Columns: A: item, B: SP, C: SF, D: SKU
     const rowData = [
       groupData.title || '',
-      groupData.sourced || '',
-      groupData.bought_for_price ? `£${groupData.bought_for_price}` : '',
-      '', // recommended price
-      '', // Inital up. pri.
-      '', // sold for
+      groupData.bought_for_price ? `£${groupData.bought_for_price}` : '0',
+      '', // SF
       groupData.sku || ''
     ];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: `${tabName}!A:G`,
+      range: `${tabName}!A:D`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [rowData]

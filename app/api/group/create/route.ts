@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
+import { appendToGoogleSheet } from '@/lib/google-sheets';
 function getSkuPrefix(categoryName: string) {
   switch (categoryName) {
     case 'Outerwear': return 'O';
@@ -76,6 +77,13 @@ export async function POST(request: Request) {
       console.error('Error updating photos with group_id:', photoUpdateError);
       return NextResponse.json({ error: photoUpdateError.message }, { status: 500 });
     }
+
+    try {
+      await appendToGoogleSheet(groupData);
+    } catch (sheetError) {
+      console.error('Failed to append to Google Sheets during group creation:', sheetError);
+    }
+
     return NextResponse.json({ success: true, group: groupData });
   } catch (error: any) {
     console.error('Group creation error:', error);
