@@ -132,17 +132,21 @@ export async function appendToGoogleSheet(groupData: any) {
       }
     }
 
-    // Columns: A: item, B: SP, C: SF, D: SKU
+    // Pad to 7 columns so that it matches the existing Google Sheet headers:
+    // A: item, B: sourced, C: bought for, D: rec price, E: init up pri, F: sold for, G: SKU
     const rowData = [
-      '', // Blank item title per user request
-      groupData.bought_for_price ? `£${groupData.bought_for_price}` : '0',
-      '', // SF
-      groupData.sku || ''
+      '', // A: item (Blank item title per user request)
+      '', // B: sourced (Blank per user request)
+      groupData.bought_for_price ? `£${groupData.bought_for_price}` : '0', // C: bought for
+      '', // D: recommended price
+      '', // E: Inital up. pri.
+      '', // F: sold for
+      groupData.sku || '' // G: SKU
     ];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: `${tabName}!A:D`,
+      range: `${tabName}!A:G`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [rowData]
