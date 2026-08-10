@@ -771,15 +771,20 @@ function AppShell() {
             <div className="w-full space-y-4">
               <div>
                 <label className="text-xs uppercase tracking-widest text-white/50 font-bold mb-2 block">SKU Generator</label>
+              <div className="relative">
                 <select
                   value={skuCategory}
                   onChange={e => setSkuCategory(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/30"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 appearance-none"
                 >
                   {Object.keys(TAXONOMY).map(cat => (
                     <option key={cat} value={cat} className="bg-[#111]">{cat}</option>
                   ))}
                 </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
               </div>
 
               <button
