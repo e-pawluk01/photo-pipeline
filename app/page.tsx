@@ -446,8 +446,7 @@ function AppShell() {
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ ...activeGroup, cover_photo_id: photoId })
              });
-          onRemovePhoto={handleDeletePhoto}
-          onSetCover={handleSetCover}
+          }}
           onDelete={async () => {
             await fetch(`/api/group/${activeGroupId}`, { method: 'DELETE' });
             setActiveGroupId(null);
